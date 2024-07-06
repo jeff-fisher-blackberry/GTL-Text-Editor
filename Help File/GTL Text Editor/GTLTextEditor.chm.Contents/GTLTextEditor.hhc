@@ -1,0 +1,126 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<HEAD>
+<!-- Sitemap 1.0 -->
+</HEAD><BODY>
+<UL>
+     <LI><OBJECT type="text/sitemap">
+         <param name="Name" value="Introducting GTL Text Editor">
+         <param name="Local" value="FirstTopic.htm">
+          </OBJECT>
+     <UL>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Quick Start">
+              <param name="Local" value="Quick_Start.htm">
+              <param name="ImageNumber" value="11">
+               </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Features in this release">
+              <param name="Local" value="Features_in_this_release.htm">
+              <param name="ImageNumber" value="12">
+               </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="GTL Text Editor Web Page">
+              <param name="Local" value="http:\\home.nc.rr.com\afishe\GTLTextEditor\main.htm">
+              <param name="ImageNumber" value="13">
+               </OBJECT>
+     </UL>
+     <LI><OBJECT type="text/sitemap">
+         <param name="Name" value="Using GTL Text Editor">
+         <param name="Local" value="Using_GTL_Text_Editor.htm">
+          </OBJECT>
+     <UL>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="GTL Text Editor Menu and Toolbar">
+              <param name="Local" value="GTL_Text_Editor_Menus.htm">
+               </OBJECT>
+          <UL>
+               <LI><OBJECT type="text/sitemap">
+                   <param name="Name" value="File Menu">
+                   <param name="Local" value="File_Menu.htm">
+                    </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                   <param name="Name" value="Edit Menu">
+                   <param name="Local" value="Edit_Menu.htm">
+                    </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                   <param name="Name" value="Tile Menu">
+                   <param name="Local" value="Tile_Menu.htm">
+                    </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                   <param name="Name" value="Help Menu">
+                   <param name="Local" value="Help_Menu.htm">
+                    </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                   <param name="Name" value="Toolbar">
+                   <param name="Local" value="Toolbar.htm">
+                    </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                   <param name="Name" value="Status Bar">
+                   <param name="Local" value="Status_Bar.htm">
+                    </OBJECT>
+          </UL>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="The GTL File Viewing Area">
+              <param name="Local" value="The_GTL_file.htm">
+              <param name="ImageNumber" value="0">
+               </OBJECT>
+          <UL>
+               <LI><OBJECT type="text/sitemap">
+                   <param name="Name" value="Setting the Base Tile">
+                   <param name="Local" value="The_Base_Tile.htm">
+                    </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                   <param name="Name" value="Deleting Tiles">
+                   <param name="Local" value="Cloning_and_Deleting_Tiles.htm">
+                    </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                   <param name="Name" value="Saving Selected Tiles">
+                   <param name="Local" value="Saving_Selected_Tiles.htm">
+                    </OBJECT>
+          </UL>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="The Working Tile Area">
+              <param name="Local" value="The_Working_Tile.htm">
+              <param name="ImageNumber" value="0">
+               </OBJECT>
+          <UL>
+               <LI><OBJECT type="text/sitemap">
+                   <param name="Name" value="Adding and Positioning Text">
+                   <param name="Local" value="Adding_Text.htm">
+                    </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                   <param name="Name" value="Working with Fonts">
+                   <param name="Local" value="Working_with_Fonts.htm">
+                    </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                   <param name="Name" value="Text Position Data Buttons">
+                   <param name="Local" value="StoringText_Positions.htm">
+                    </OBJECT>
+               <LI><OBJECT type="text/sitemap">
+                   <param name="Name" value="Using Automation Features">
+                   <param name="Local" value="Automatically_creating_halfsize_tiles.htm">
+                    </OBJECT>
+          </UL>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="The Preview Tile Area">
+              <param name="Local" value="The_Preview_Tile.htm">
+              <param name="ImageNumber" value="0">
+               </OBJECT>
+          <UL>
+               <LI><OBJECT type="text/sitemap">
+                   <param name="Name" value="Using the Preview Tile Area">
+                   <param name="Local" value="Moving_to_GTL_File_Viewer.htm">
+                    </OBJECT>
+          </UL>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Working with GTL files in Cyberboard Designer">
+              <param name="Local" value="Importing_GTL_files_into_Cyberboard_Designer.htm">
+               </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Creating Bitmap files from a GTL File">
+              <param name="Local" value="Creating_Bitmap_files_from_a_GTL_File.htm">
+               </OBJECT>
+     </UL>
+</UL>
+</BODY></HTML>

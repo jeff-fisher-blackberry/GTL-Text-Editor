@@ -1,0 +1,205 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<HEAD>
+<!-- Sitemap 1.0 -->
+</HEAD><BODY>
+<UL>
+     <LI><OBJECT type="text/sitemap">
+         <param name="Name" value="Bitmaps">
+         <param name="See Also" value="Bitmaps">
+     </OBJECT>
+     <UL>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Copying">
+              <param name="Name" value="Moving images to the Working Tile">
+              <param name="Local" value="Moving_a_tile_to_the_Working_Tile.htm">
+          </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Creating">
+              <param name="Name" value="Creating Bitmap files from a GTL File">
+              <param name="Local" value="Creating_Bitmap_files_from_a_GTL_File.htm">
+          </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Pasting">
+              <param name="Name" value="Moving images to the Working Tile">
+              <param name="Local" value="Moving_a_tile_to_the_Working_Tile.htm">
+          </OBJECT>
+     </UL>
+     <LI><OBJECT type="text/sitemap">
+         <param name="Name" value="Features">
+         <param name="Name" value="Features in this release">
+         <param name="Local" value="Features_in_this_release.htm">
+     </OBJECT>
+     <LI><OBJECT type="text/sitemap">
+         <param name="Name" value="Fonts">
+         <param name="Name" value="Working with Fonts">
+         <param name="Local" value="Working_with_Fonts.htm">
+     </OBJECT>
+     <LI><OBJECT type="text/sitemap">
+         <param name="Name" value="GTL File">
+         <param name="See Also" value="GTL File">
+     </OBJECT>
+     <UL>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Deleting Tiles">
+              <param name="Name" value="Deleting Tiles">
+              <param name="Local" value="Cloning_and_Deleting_Tiles.htm">
+          </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Loading">
+              <param name="Name" value="Loading a GTL File">
+              <param name="Local" value="Loading_a_GTL_File.htm">
+          </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Saving">
+              <param name="Name" value="Saving the GTL File">
+              <param name="Local" value="Saving_the_GTL_File.htm">
+          </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Saving as">
+              <param name="Name" value="Saving the GTL File">
+              <param name="Local" value="Saving_the_GTL_File.htm">
+          </OBJECT>
+     </UL>
+     <LI><OBJECT type="text/sitemap">
+         <param name="Name" value="GTL Files">
+         <param name="See Also" value="GTL Files">
+     </OBJECT>
+     <UL>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Creating">
+              <param name="Name" value="Creating GTL files in Cyberboard Designer">
+              <param name="Local" value="Creating_GTL_files_in_Cyberboard_Designer.htm">
+          </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Cyberboard">
+              <param name="Name" value="Creating GTL files in Cyberboard Designer">
+              <param name="Local" value="Creating_GTL_files_in_Cyberboard_Designer.htm">
+          </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Importing">
+              <param name="Name" value="Importing GTL files into Cyberboard Designer">
+              <param name="Local" value="Importing_GTL_files_into_Cyberboard_Designer.htm">
+          </OBJECT>
+     </UL>
+     <LI><OBJECT type="text/sitemap">
+         <param name="Name" value="GTL Tile Viewer">
+         <param name="See Also" value="GTL Tile Viewer">
+     </OBJECT>
+     <LI><OBJECT type="text/sitemap">
+         <param name="Name" value="Preview Tile">
+         <param name="See Also" value="Preview Tile">
+     </OBJECT>
+     <UL>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Halfsize tiles">
+              <param name="Name" value="Automatically creating halfsize tiles">
+              <param name="Local" value="Automatically_creating_halfsize_tiles.htm">
+          </OBJECT>
+     </UL>
+     <LI><OBJECT type="text/sitemap">
+         <param name="Name" value="Quick Start">
+         <param name="Name" value="Quick Start">
+         <param name="Local" value="Quick_Start.htm">
+     </OBJECT>
+     <LI><OBJECT type="text/sitemap">
+         <param name="Name" value="Storing">
+         <param name="See Also" value="Storing">
+     </OBJECT>
+     <UL>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Text Positions">
+              <param name="Name" value="Storing Text Positions">
+              <param name="Local" value="StoringText_Positions.htm">
+          </OBJECT>
+     </UL>
+     <LI><OBJECT type="text/sitemap">
+         <param name="Name" value="Text">
+         <param name="See Also" value="Text">
+     </OBJECT>
+     <UL>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Adding">
+              <param name="Name" value="Adding and Positioning Text">
+              <param name="Local" value="Adding_Text.htm">
+          </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Fonts">
+              <param name="Name" value="Working with Fonts">
+              <param name="Local" value="Working_with_Fonts.htm">
+          </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Positioning">
+              <param name="Name" value="Adding and Positioning Text">
+              <param name="Local" value="Adding_Text.htm">
+          </OBJECT>
+     </UL>
+     <LI><OBJECT type="text/sitemap">
+         <param name="Name" value="Text Positions">
+         <param name="See Also" value="Text Positions">
+     </OBJECT>
+     <UL>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Storing">
+              <param name="Name" value="Storing Text Positions">
+              <param name="Local" value="StoringText_Positions.htm">
+          </OBJECT>
+     </UL>
+     <LI><OBJECT type="text/sitemap">
+         <param name="Name" value="Tile">
+         <param name="See Also" value="Tile">
+     </OBJECT>
+     <UL>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Priview">
+              <param name="Name" value="The Preview Tile Area Area">
+              <param name="Local" value="The_Preview_Tile.htm">
+          </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Working">
+              <param name="Name" value="The Working Tile">
+              <param name="Local" value="The_Working_Tile.htm">
+          </OBJECT>
+     </UL>
+     <LI><OBJECT type="text/sitemap">
+         <param name="Name" value="Using">
+         <param name="Name" value="Using GTL Text Editor">
+         <param name="Local" value="Using_GTL_Text_Editor.htm">
+     </OBJECT>
+     <LI><OBJECT type="text/sitemap">
+         <param name="Name" value="Working Tile">
+         <param name="Name" value="The Working Tile">
+         <param name="Local" value="The_Working_Tile.htm">
+     </OBJECT>
+     <UL>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Adding a tile">
+              <param name="Name" value="Moving images to the Working Tile">
+              <param name="Local" value="Moving_a_tile_to_the_Working_Tile.htm">
+          </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Clearing">
+              <param name="Name" value="Moving images to the Working Tile">
+              <param name="Local" value="Moving_a_tile_to_the_Working_Tile.htm">
+          </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Flipping">
+              <param name="Name" value="Rotating and Flipping">
+              <param name="Local" value="Rotating_and_Flipping.htm">
+          </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Moving to Preview Tile">
+              <param name="Name" value="Preview Tile Area Use">
+              <param name="Local" value="Moving_to_Preview_Tile.htm">
+          </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Rotating">
+              <param name="Name" value="Rotating and Flipping">
+              <param name="Local" value="Rotating_and_Flipping.htm">
+          </OBJECT>
+          <LI><OBJECT type="text/sitemap">
+              <param name="Name" value="Undoing">
+              <param name="See Also" value="Undoing">
+          </OBJECT>
+</UL>
+</BODY></HTML>
