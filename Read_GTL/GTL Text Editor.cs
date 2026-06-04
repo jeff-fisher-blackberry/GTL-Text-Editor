@@ -354,62 +354,82 @@ namespace GTL_Editor
             LayoutRotationControls();
         }
 
+        private void LayoutMainFormContainers()
+        {
+            if (toolStrip1 == null || groupBox3 == null || groupBox2 == null || groupBox1 == null || groupBox4 == null)
+            {
+                return;
+            }
+            int designTimeBottom = 49;
+            int currentBottom = toolStrip1.Bottom;
+            int deltaY = currentBottom - designTimeBottom;
+
+            if (deltaY > 0)
+            {
+                this.Height += deltaY;
+                groupBox3.Top += deltaY;
+                groupBox2.Top += deltaY;
+                groupBox1.Top += deltaY;
+                groupBox4.Top += deltaY;
+            }
+        }
+
         private void ModernizeToolbarIcons()
         {
-            toolStrip1.ImageScalingSize = new Size(24, 24);
+            toolStrip1.ImageScalingSize = new Size(48, 48);
 
             imageList1.Images.Clear();
-            imageList1.ImageSize = new Size(24, 24);
+            imageList1.ImageSize = new Size(48, 48);
             
-            imageList1.Images.Add(GetModernGlyph("\uE7AD", 24, Color.Black)); // Index 0: ROTATE_T
-            imageList1.Images.Add(GetModernGlyph("\uE7AD", 24, Color.Gray));  // Index 1: ROTATE_DISABLED
-            imageList1.Images.Add(GetModernGlyph("\uE10F", 24, Color.Black)); // Index 2: WriteText2
-            imageList1.Images.Add(GetModernGlyph("\uE72E", 24, Color.Black)); // Index 3: lock_closed
-            imageList1.Images.Add(GetModernGlyph("\uE785", 24, Color.Black)); // Index 4: lock_closedNO
-            imageList1.Images.Add(GetModernGlyph("\uE8C0", 24, Color.Black)); // Index 5: CreateHalfFromFull
-            imageList1.Images.Add(GetModernGlyph("\uE8C0", 24, Color.Gray));  // Index 6: CreateHalfFromFullNO
-            imageList1.Images.Add(GetModernGlyph("\uE785", 24, Color.Black)); // Index 7: lock_open
-            imageList1.Images.Add(GetModernGlyph("\uE814", 24, Color.Black)); // Index 8: AutoBevelBW
-            imageList1.Images.Add(GetModernGlyph("\uE814", 24, Color.Gray));  // Index 9: AutoBevelBW-A
-            imageList1.Images.Add(GetModernGlyph("\uE72C", 24, Color.Black)); // Index 10: AutoClipBW
-            imageList1.Images.Add(GetModernGlyph("\uE72C", 24, Color.Gray));  // Index 11: AutoClipBW-A
-            imageList1.Images.Add(GetModernGlyph("\uE890", 24, Color.Gray));  // Index 12: AntiAlias-Off
-            imageList1.Images.Add(GetModernGlyph("\uE890", 24, Color.DodgerBlue)); // Index 13: antialias-on
+            imageList1.Images.Add(GetModernGlyph("\uE7AD", 48, Color.Black)); // Index 0: ROTATE_T
+            imageList1.Images.Add(GetModernGlyph("\uE7AD", 48, Color.Gray));  // Index 1: ROTATE_DISABLED
+            imageList1.Images.Add(GetModernGlyph("\uE10F", 48, Color.Black)); // Index 2: WriteText2
+            imageList1.Images.Add(GetModernGlyph("\uE72E", 48, Color.Black)); // Index 3: lock_closed
+            imageList1.Images.Add(GetModernGlyph("\uE785", 48, Color.Black)); // Index 4: lock_closedNO
+            imageList1.Images.Add(GetModernGlyph("\uE8C0", 48, Color.Black)); // Index 5: CreateHalfFromFull
+            imageList1.Images.Add(GetModernGlyph("\uE8C0", 48, Color.Gray));  // Index 6: CreateHalfFromFullNO
+            imageList1.Images.Add(GetModernGlyph("\uE785", 48, Color.Black)); // Index 7: lock_open
+            imageList1.Images.Add(GetModernGlyph("\uE814", 48, Color.Black)); // Index 8: AutoBevelBW
+            imageList1.Images.Add(GetModernGlyph("\uE814", 48, Color.Gray));  // Index 9: AutoBevelBW-A
+            imageList1.Images.Add(GetModernGlyph("\uE72C", 48, Color.Black)); // Index 10: AutoClipBW
+            imageList1.Images.Add(GetModernGlyph("\uE72C", 48, Color.Gray));  // Index 11: AutoClipBW-A
+            imageList1.Images.Add(GetModernGlyph("\uE890", 48, Color.Gray));  // Index 12: AntiAlias-Off
+            imageList1.Images.Add(GetModernGlyph("\uE890", 48, Color.DodgerBlue)); // Index 13: antialias-on
 
-            openToolStripButton.Image = GetModernGlyph("\uE889", 24, Color.Black);
-            saveToolStripButton.Image = GetModernGlyph("\uE74E", 24, Color.Black);
-            copyToolStripButton.Image = GetModernGlyph("\uE8C8", 24, Color.Black);
-            pasteToolStripButton.Image = GetModernGlyph("\uE77F", 24, Color.Black);
-            WhatsThistoolStripButton.Image = GetModernGlyph("\uE897", 24, Color.Black);
+            openToolStripButton.Image = GetModernGlyph("\uE889", 48, Color.Black);
+            saveToolStripButton.Image = GetModernGlyph("\uE74E", 48, Color.Black);
+            copyToolStripButton.Image = GetModernGlyph("\uE8C8", 48, Color.Black);
+            pasteToolStripButton.Image = GetModernGlyph("\uE77F", 48, Color.Black);
+            WhatsThistoolStripButton.Image = GetModernGlyph("\uE897", 48, Color.Black);
             
-            toolFontSelectButton.Image = GetModernGlyph("\uE8D2", 24, Color.Black);
-            fontColortoolStripButton1.Image = GetModernGlyph("\uE8D3", 24, Color.Black);
-            toolFontIncreaseButton.Image = GetModernGlyph("\uE8E7", 24, Color.Black);
-            toolFontDecreaseButton.Image = GetModernGlyph("\uE8E8", 24, Color.Black);
-            toolFontBoldButton.Image = GetModernGlyph("\uE19B", 24, Color.Black);
-            toolFontItalicButton.Image = GetModernGlyph("\uE19C", 24, Color.Black);
-            toolAntiAliasButton1.Image = GetModernGlyph("\uE890", 24, Color.Gray);
+            toolFontSelectButton.Image = GetModernGlyph("\uE8D2", 48, Color.Black);
+            fontColortoolStripButton1.Image = GetModernGlyph("\uE8D3", 48, Color.Black);
+            toolFontIncreaseButton.Image = GetModernGlyph("\uE8E7", 48, Color.Black);
+            toolFontDecreaseButton.Image = GetModernGlyph("\uE8E8", 48, Color.Black);
+            toolFontBoldButton.Image = GetModernGlyph("\uE19B", 48, Color.Black);
+            toolFontItalicButton.Image = GetModernGlyph("\uE19C", 48, Color.Black);
+            toolAntiAliasButton1.Image = GetModernGlyph("\uE890", 48, Color.Gray);
             
-            placeTexttoolStripButton.Image = GetModernGlyph("\uE10F", 24, Color.Black);
-            storetoolStripButton.Image = GetModernGlyph("\uE7B3", 24, Color.Black);
+            placeTexttoolStripButton.Image = GetModernGlyph("\uE10F", 48, Color.Black);
+            storetoolStripButton.Image = GetModernGlyph("\uE7B3", 48, Color.Black);
             
-            lockCreateHalffromFullStripButton1.Image = GetModernGlyph("\uE8C0", 24, Color.Gray);
-            createTiletoolStripButton.Image = GetModernGlyph("\uE109", 24, Color.Black);
-            createFromPositiontoolStripButton.Image = GetModernGlyph("\uE8A5", 24, Color.Black);
-            replaceTooltoolStripButton1.Image = GetModernGlyph("\uE117", 24, Color.Black);
+            lockCreateHalffromFullStripButton1.Image = GetModernGlyph("\uE8C0", 48, Color.Gray);
+            createTiletoolStripButton.Image = GetModernGlyph("\uE109", 48, Color.Black);
+            createFromPositiontoolStripButton.Image = GetModernGlyph("\uE8A5", 48, Color.Black);
+            replaceTooltoolStripButton1.Image = GetModernGlyph("\uE117", 48, Color.Black);
             
-            lockRotationtoolStripButton1.Image = GetModernGlyph("\uE72E", 24, Color.Black);
-            toolRotateLeftButton.Image = GetModernGlyph("\uE7A6", 24, Color.Black);
-            toolRotateRightButton.Image = GetModernGlyph("\uE7A7", 24, Color.Black);
+            lockRotationtoolStripButton1.Image = GetModernGlyph("\uE72E", 48, Color.Black);
+            toolRotateLeftButton.Image = GetModernGlyph("\uE7A6", 48, Color.Black);
+            toolRotateRightButton.Image = GetModernGlyph("\uE7A7", 48, Color.Black);
             
-            lockFliptoolStripButton1.Image = GetModernGlyph("\uE72E", 24, Color.Black);
-            toolFlipHorizontal.Image = GetModernGlyph("\uE8AB", 24, Color.Black);
-            toolFlipVertical.Image = GetModernGlyph("\uE8AC", 24, Color.Black);
+            lockFliptoolStripButton1.Image = GetModernGlyph("\uE72E", 48, Color.Black);
+            toolFlipHorizontal.Image = GetModernGlyph("\uE8AB", 48, Color.Black);
+            toolFlipVertical.Image = GetModernGlyph("\uE8AC", 48, Color.Black);
             
-            fullTiletoolStripButton1.Image = GetModernGlyph("\uF158", 24, Color.Black);
-            halfTiletoolStripButton1.Image = GetModernGlyph("\uF156", 24, Color.Black);
-            smallTiletoolStripButton2.Image = GetModernGlyph("\uF157", 24, Color.Black);
-            deletetoolStripButton1.Image = GetModernGlyph("\uE74D", 24, Color.Black);
+            fullTiletoolStripButton1.Image = GetModernGlyph("\uF158", 48, Color.Black);
+            halfTiletoolStripButton1.Image = GetModernGlyph("\uF156", 48, Color.Black);
+            smallTiletoolStripButton2.Image = GetModernGlyph("\uF157", 48, Color.Black);
+            deletetoolStripButton1.Image = GetModernGlyph("\uE74D", 48, Color.Black);
         }
 
         //Constructor
@@ -440,6 +460,8 @@ namespace GTL_Editor
             EnableDoubleBuffering(workingTile);
 
             ModernizeToolbarIcons();
+            this.PerformLayout();
+            LayoutMainFormContainers();
 
             lockCreateHalffromFullStripButton1.Image = this.imageList1.Images[6];
 
@@ -593,7 +615,7 @@ namespace GTL_Editor
                 
                 this.vScrollBar1.Maximum = panel1.Controls.Count - 1;
                 this.vScrollBar1.Value = 0;
-                this.panel1.Top = -TileDisplay[vScrollBar1.Value].Top + 49;
+                this.panel1.Top = -TileDisplay[vScrollBar1.Value].Top + this.toolStrip1.Bottom;
 
                 UpdateWorkingTileGraphics(workingTile.Image);
 
@@ -742,7 +764,7 @@ namespace GTL_Editor
         {
             try
             {
-                this.panel1.Top = -TileDisplay[vScrollBar1.Value].Top + 49;
+                this.panel1.Top = -TileDisplay[vScrollBar1.Value].Top + this.toolStrip1.Bottom;
             }
             catch
             {
