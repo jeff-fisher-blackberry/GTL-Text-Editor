@@ -107,6 +107,311 @@ namespace GTL_Editor
                 null, control, new object[] { true });
         }
 
+        private Bitmap GetModernGlyph(string glyph, int size, Color color)
+        {
+            Bitmap bmp = new Bitmap(size, size);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.Transparent);
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+                using (Font font = new Font("Segoe MDL2 Assets", size * 0.55f, FontStyle.Regular, GraphicsUnit.Pixel))
+                {
+                    SizeF glyphSize = g.MeasureString(glyph, font);
+                    g.DrawString(glyph, font, new SolidBrush(color), (size - glyphSize.Width) / 2, (size - glyphSize.Height) / 2);
+                }
+            }
+            return bmp;
+        }
+
+        private void RenderRotationButtonImage(Button btn, string text, float angle)
+        {
+            if (btn == null) return;
+            int w = btn.ClientSize.Width;
+            int h = btn.ClientSize.Height;
+            if (w <= 0 || h <= 0)
+            {
+                w = btn.Width;
+                h = btn.Height;
+            }
+            if (w <= 0 || h <= 0)
+            {
+                w = 30;
+                h = 30;
+            }
+
+            Bitmap bmp = new Bitmap(w, h);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.Transparent);
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+                
+                g.TranslateTransform(w / 2f, h / 2f);
+                g.RotateTransform(angle);
+                
+                using (Font font = new Font(this.Font.FontFamily, this.Font.Size, FontStyle.Regular))
+                {
+                    SizeF size = g.MeasureString(text, font);
+                    g.DrawString(text, font, Brushes.Black, -size.Width / 2f, -size.Height / 2f);
+                }
+                g.ResetTransform();
+            }
+            if (btn.Image != null)
+            {
+                btn.Image.Dispose();
+            }
+            btn.Image = bmp;
+        }
+
+        private void LayoutRotationControls()
+        {
+            if (btnRotate180 == null || btnRotate0 == null || btnRotateminus90 == null || btnRotate90 == null ||
+                pctRotate == null || txtRotate == null || hScrollRotate == null || lblTextPlacement == null)
+            {
+                return;
+            }
+
+            btnRotate180.Left = 15;
+            int rotationY = chkIncrement.Bottom + 10;
+            btnRotate180.Top = rotationY + btnRotateminus90.Height;
+
+            int verticalButtonWidth = btnRotateminus90.Width;
+            btnRotateminus90.Left = btnRotate180.Right + 5;
+            btnRotate90.Left = btnRotateminus90.Left;
+
+            btnRotate0.Left = btnRotateminus90.Right + 5;
+            btnRotate0.Top = btnRotate180.Top;
+
+            btnRotateminus90.Top = btnRotate180.Top - btnRotateminus90.Height;
+            btnRotate90.Top = btnRotate180.Bottom;
+
+            pctRotate.Left = btnRotate0.Right + 15;
+            pctRotate.Top = btnRotateminus90.Top;
+
+            txtRotate.Left = pctRotate.Left;
+            txtRotate.Top = pctRotate.Bottom + 5;
+            txtRotate.Width = 35;
+
+            hScrollRotate.Left = txtRotate.Right + 5;
+            hScrollRotate.Top = txtRotate.Top + (txtRotate.Height - hScrollRotate.Height) / 2;
+            hScrollRotate.Width = groupBox1.Width - hScrollRotate.Left - 15;
+        }
+
+        private void LayoutTileWorkingArea()
+        {
+            if (groupBox3 == null || txtWidth == null || label1 == null || txtHeight == null ||
+                cboCornerSize == null || btnCorners == null || btnStretch == null || btnResize == null ||
+                cboBorderSize == null || btnGradient == null || pctTransparentColor == null || label2 == null ||
+                cboClear == null || btnClear == null)
+            {
+                return;
+            }
+
+            int startX = 15;
+            int startY = 20;
+
+            txtWidth.Location = new Point(startX, startY);
+            txtWidth.Width = 40;
+
+            label1.Text = "x";
+            label1.AutoSize = true;
+            label1.Location = new Point(txtWidth.Right + 5, startY + (txtWidth.Height - label1.Height) / 2);
+
+            txtHeight.Location = new Point(label1.Right + 5, startY);
+            txtHeight.Width = 40;
+
+            cboCornerSize.Location = new Point(txtHeight.Right + 15, startY);
+            cboCornerSize.Width = 50;
+
+            btnCorners.Location = new Point(cboCornerSize.Right + 15, startY);
+            btnCorners.Width = 70;
+            btnCorners.Height = txtWidth.Height;
+
+            int row2Y = txtWidth.Bottom + 10;
+
+            btnStretch.Location = new Point(startX, row2Y);
+            btnStretch.Width = 60;
+            btnStretch.Height = txtWidth.Height;
+
+            btnResize.Location = new Point(btnStretch.Right + 5, row2Y);
+            btnResize.Width = 60;
+            btnResize.Height = txtWidth.Height;
+
+            cboBorderSize.Location = new Point(txtHeight.Right + 15, row2Y);
+            cboBorderSize.Width = 50;
+
+            btnGradient.Location = new Point(cboBorderSize.Right + 15, row2Y);
+            btnGradient.Width = 70;
+            btnGradient.Height = txtWidth.Height;
+
+            int row3Y = btnStretch.Bottom + 10;
+
+            pctTransparentColor.Location = new Point(startX, row3Y + (txtWidth.Height - 20) / 2);
+            pctTransparentColor.Size = new Size(25, 20);
+
+            label2.AutoSize = true;
+            label2.Location = new Point(pctTransparentColor.Right + 5, row3Y + (txtWidth.Height - label2.Height) / 2);
+
+            cboClear.Location = new Point(txtHeight.Right + 15, row3Y);
+            cboClear.Width = 50;
+
+            btnClear.Location = new Point(cboClear.Right + 15, row3Y);
+            btnClear.Width = 70;
+            btnClear.Height = txtWidth.Height;
+        }
+
+        private void LayoutTextWorkingArea()
+        {
+            if (groupBox1 == null || btnReset == null || btnAlignLeft == null || btnAlignCenter == null ||
+                btnAlignRights == null || btnExtendRange == null || btnAlignTop == null || btnAlignMiddle == null ||
+                btnAlignBottom == null || btnReduceRange == null || vScrollText == null || txtText == null ||
+                lblTileSize == null || lblTextPlacement == null || hScrollText == null || btnHideControls == null ||
+                btnPlace == null || btnStore == null || btnReplace == null || chkIncrement == null)
+            {
+                return;
+            }
+
+            btnReset.Location = new Point(15, 20);
+            btnReset.Width = 60;
+
+            btnAlignLeft.Location = new Point(btnReset.Right + 15, 20);
+            btnAlignLeft.Width = 24;
+            btnAlignLeft.Height = btnReset.Height;
+
+            btnAlignCenter.Location = new Point(btnAlignLeft.Right + 5, 20);
+            btnAlignCenter.Width = 24;
+            btnAlignCenter.Height = btnReset.Height;
+
+            btnAlignRights.Location = new Point(btnAlignCenter.Right + 5, 20);
+            btnAlignRights.Width = 24;
+            btnAlignRights.Height = btnReset.Height;
+
+            int verticalStackX = 15;
+            int startY = btnReset.Bottom + 10;
+
+            btnExtendRange.Location = new Point(verticalStackX, startY);
+            btnExtendRange.Width = 24;
+            btnExtendRange.Height = btnReset.Height;
+
+            btnAlignTop.Location = new Point(verticalStackX, btnExtendRange.Bottom + 5);
+            btnAlignTop.Width = 24;
+            btnAlignTop.Height = btnReset.Height;
+
+            btnAlignMiddle.Location = new Point(verticalStackX, btnAlignTop.Bottom + 5);
+            btnAlignMiddle.Width = 24;
+            btnAlignMiddle.Height = btnReset.Height;
+
+            btnAlignBottom.Location = new Point(verticalStackX, btnAlignMiddle.Bottom + 5);
+            btnAlignBottom.Width = 24;
+            btnAlignBottom.Height = btnReset.Height;
+
+            btnReduceRange.Location = new Point(verticalStackX, btnAlignBottom.Bottom + 5);
+            btnReduceRange.Width = 24;
+            btnReduceRange.Height = btnReset.Height;
+
+            vScrollText.Left = btnExtendRange.Right + 10;
+            vScrollText.Top = btnExtendRange.Top;
+            vScrollText.Width = 18;
+
+            txtText.Left = vScrollText.Right + 10;
+            txtText.Top = vScrollText.Top;
+            txtText.Width = groupBox1.Width - txtText.Left - 15;
+
+            lblTileSize.Left = txtText.Left;
+            lblTileSize.Top = txtText.Bottom + 5;
+
+            lblTextPlacement.Left = txtText.Left;
+            lblTextPlacement.Top = lblTileSize.Bottom + 5;
+
+            hScrollText.Left = txtText.Left;
+            hScrollText.Width = txtText.Width;
+            hScrollText.Height = 17;
+            hScrollText.Top = lblTextPlacement.Bottom + 5;
+
+            vScrollText.Height = hScrollText.Top - vScrollText.Top;
+
+            int buttonY = hScrollText.Bottom + 10;
+            int availableWidth = groupBox1.Width - 30;
+            int buttonWidth = (availableWidth - 15) / 4;
+
+            btnHideControls.Location = new Point(15, buttonY);
+            btnHideControls.Width = buttonWidth;
+            btnHideControls.Height = btnReset.Height;
+
+            btnPlace.Location = new Point(btnHideControls.Right + 5, buttonY);
+            btnPlace.Width = buttonWidth;
+            btnPlace.Height = btnReset.Height;
+
+            btnStore.Location = new Point(btnPlace.Right + 5, buttonY);
+            btnStore.Width = buttonWidth;
+            btnStore.Height = btnReset.Height;
+
+            btnReplace.Location = new Point(btnStore.Right + 5, buttonY);
+            btnReplace.Width = buttonWidth;
+            btnReplace.Height = btnReset.Height;
+
+            chkIncrement.Location = new Point(15, btnHideControls.Bottom + 10);
+
+            LayoutRotationControls();
+        }
+
+        private void ModernizeToolbarIcons()
+        {
+            toolStrip1.ImageScalingSize = new Size(24, 24);
+
+            imageList1.Images.Clear();
+            imageList1.ImageSize = new Size(24, 24);
+            
+            imageList1.Images.Add(GetModernGlyph("\uE7AD", 24, Color.Black)); // Index 0: ROTATE_T
+            imageList1.Images.Add(GetModernGlyph("\uE7AD", 24, Color.Gray));  // Index 1: ROTATE_DISABLED
+            imageList1.Images.Add(GetModernGlyph("\uE10F", 24, Color.Black)); // Index 2: WriteText2
+            imageList1.Images.Add(GetModernGlyph("\uE72E", 24, Color.Black)); // Index 3: lock_closed
+            imageList1.Images.Add(GetModernGlyph("\uE785", 24, Color.Black)); // Index 4: lock_closedNO
+            imageList1.Images.Add(GetModernGlyph("\uE8C0", 24, Color.Black)); // Index 5: CreateHalfFromFull
+            imageList1.Images.Add(GetModernGlyph("\uE8C0", 24, Color.Gray));  // Index 6: CreateHalfFromFullNO
+            imageList1.Images.Add(GetModernGlyph("\uE785", 24, Color.Black)); // Index 7: lock_open
+            imageList1.Images.Add(GetModernGlyph("\uE814", 24, Color.Black)); // Index 8: AutoBevelBW
+            imageList1.Images.Add(GetModernGlyph("\uE814", 24, Color.Gray));  // Index 9: AutoBevelBW-A
+            imageList1.Images.Add(GetModernGlyph("\uE72C", 24, Color.Black)); // Index 10: AutoClipBW
+            imageList1.Images.Add(GetModernGlyph("\uE72C", 24, Color.Gray));  // Index 11: AutoClipBW-A
+            imageList1.Images.Add(GetModernGlyph("\uE890", 24, Color.Gray));  // Index 12: AntiAlias-Off
+            imageList1.Images.Add(GetModernGlyph("\uE890", 24, Color.DodgerBlue)); // Index 13: antialias-on
+
+            openToolStripButton.Image = GetModernGlyph("\uE889", 24, Color.Black);
+            saveToolStripButton.Image = GetModernGlyph("\uE74E", 24, Color.Black);
+            copyToolStripButton.Image = GetModernGlyph("\uE8C8", 24, Color.Black);
+            pasteToolStripButton.Image = GetModernGlyph("\uE77F", 24, Color.Black);
+            WhatsThistoolStripButton.Image = GetModernGlyph("\uE897", 24, Color.Black);
+            
+            toolFontSelectButton.Image = GetModernGlyph("\uE8D2", 24, Color.Black);
+            fontColortoolStripButton1.Image = GetModernGlyph("\uE8D3", 24, Color.Black);
+            toolFontIncreaseButton.Image = GetModernGlyph("\uE8E7", 24, Color.Black);
+            toolFontDecreaseButton.Image = GetModernGlyph("\uE8E8", 24, Color.Black);
+            toolFontBoldButton.Image = GetModernGlyph("\uE19B", 24, Color.Black);
+            toolFontItalicButton.Image = GetModernGlyph("\uE19C", 24, Color.Black);
+            toolAntiAliasButton1.Image = GetModernGlyph("\uE890", 24, Color.Gray);
+            
+            placeTexttoolStripButton.Image = GetModernGlyph("\uE10F", 24, Color.Black);
+            storetoolStripButton.Image = GetModernGlyph("\uE7B3", 24, Color.Black);
+            
+            lockCreateHalffromFullStripButton1.Image = GetModernGlyph("\uE8C0", 24, Color.Gray);
+            createTiletoolStripButton.Image = GetModernGlyph("\uE109", 24, Color.Black);
+            createFromPositiontoolStripButton.Image = GetModernGlyph("\uE8A5", 24, Color.Black);
+            replaceTooltoolStripButton1.Image = GetModernGlyph("\uE117", 24, Color.Black);
+            
+            lockRotationtoolStripButton1.Image = GetModernGlyph("\uE72E", 24, Color.Black);
+            toolRotateLeftButton.Image = GetModernGlyph("\uE7A6", 24, Color.Black);
+            toolRotateRightButton.Image = GetModernGlyph("\uE7A7", 24, Color.Black);
+            
+            lockFliptoolStripButton1.Image = GetModernGlyph("\uE72E", 24, Color.Black);
+            toolFlipHorizontal.Image = GetModernGlyph("\uE8AB", 24, Color.Black);
+            toolFlipVertical.Image = GetModernGlyph("\uE8AC", 24, Color.Black);
+            
+            fullTiletoolStripButton1.Image = GetModernGlyph("\uF158", 24, Color.Black);
+            halfTiletoolStripButton1.Image = GetModernGlyph("\uF156", 24, Color.Black);
+            smallTiletoolStripButton2.Image = GetModernGlyph("\uF157", 24, Color.Black);
+            deletetoolStripButton1.Image = GetModernGlyph("\uE74D", 24, Color.Black);
+        }
+
         //Constructor
         public Form1()                                                                                 
         {
@@ -134,6 +439,8 @@ namespace GTL_Editor
             EnableDoubleBuffering(panel3);
             EnableDoubleBuffering(workingTile);
 
+            ModernizeToolbarIcons();
+
             lockCreateHalffromFullStripButton1.Image = this.imageList1.Images[6];
 
             mruMenu.LoadFromRegistry();
@@ -155,38 +462,15 @@ namespace GTL_Editor
             toolFontNameButton.Text = this.Font.Name;
             toolFontSizeButton.Text = this.Font.Size.ToString();
 
-            Bitmap bRotate = new Bitmap(30, 14);
-            Graphics gRotate = Graphics.FromImage(bRotate);
-            gRotate.TranslateTransform(10.0f, 0.0f);
-            gRotate.DrawString("0", this.Font, Brushes.Black, 0.0f, 0.0f);
-            btnRotate0.Image = bRotate;
-            gRotate.ResetTransform();
-            gRotate.Dispose();
+            // Run programmatic modern dynamic layouts
+            LayoutTileWorkingArea();
+            LayoutTextWorkingArea();
 
-            bRotate = new Bitmap(14, 30);
-            gRotate = Graphics.FromImage(bRotate);
-            gRotate.TranslateTransform(14.0f, 7.0f);
-            gRotate.RotateTransform(90.0f);
-            gRotate.DrawString("90", this.Font, Brushes.Black, 0.0f, 0.0f);
-            btnRotate90.Image = bRotate;
-            gRotate.ResetTransform();
-            gRotate.Dispose();
-
-            bRotate = new Bitmap(30, 14);
-            gRotate = Graphics.FromImage(bRotate);
-            gRotate.TranslateTransform(28.0f, 12.5f);
-            gRotate.RotateTransform(180.0f);
-            gRotate.DrawString("180", this.Font, Brushes.Black, 1.0f, 0.0f);
-            btnRotate180.Image = bRotate;
-            gRotate.ResetTransform();
-
-            bRotate = new Bitmap(14, 30);
-            gRotate = Graphics.FromImage(bRotate);
-            gRotate.TranslateTransform(1.0f, 27.0f);
-            gRotate.RotateTransform(270.0f);
-            gRotate.DrawString("270", this.Font, Brushes.Black, 1.0f, 0.0f);
-            btnRotateminus90.Image = bRotate;
-            gRotate.ResetTransform();
+            // Render sharp rotation presets on appropriately scaled buttons
+            RenderRotationButtonImage(btnRotate0, "0", 0.0f);
+            RenderRotationButtonImage(btnRotate90, "90", 90.0f);
+            RenderRotationButtonImage(btnRotate180, "180", 180.0f);
+            RenderRotationButtonImage(btnRotateminus90, "270", 270.0f);
 
             pctRotate.Image = imageList2.Images[1];
 
