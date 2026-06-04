@@ -91,6 +91,22 @@ namespace GTL_Editor
         protected MruStripMenuInline mruMenu;
         static string mruRegKey = "SOFTWARE\\GTL Editor";
         Cursor eyedropperCursor = new Cursor(@"Eyedropper.cur");
+
+        // Dragging state tracking variables
+        private bool isDraggingText = false;
+        private Point dragStartMouseLoc;
+        private Point dragStartTextLoc;
+
+        private void EnableDoubleBuffering(Control control)
+        {
+            if (control == null) return;
+            typeof(Control).InvokeMember("DoubleBuffered",
+                System.Reflection.BindingFlags.SetProperty |
+                System.Reflection.BindingFlags.Instance |
+                System.Reflection.BindingFlags.NonPublic,
+                null, control, new object[] { true });
+        }
+
         //Constructor
         public Form1()                                                                                 
         {
@@ -103,10 +119,21 @@ namespace GTL_Editor
                 regKey.Close();
             }
             mruMenu = new MruStripMenuInline(fileToolStripMenuItem, MRUToolStripMenuItem, new MruStripMenu.ClickedHandler(OnMruFile), mruRegKey + "\\MRU",8);
+            
+            // Programmatically bind canvas interaction events
+            workingTile.MouseDown += new MouseEventHandler(workingTile_MouseDown);
+            workingTile.MouseMove += new MouseEventHandler(workingTile_MouseMove);
+            workingTile.MouseUp += new MouseEventHandler(workingTile_MouseUp);
+            workingTile.MouseDoubleClick += new MouseEventHandler(workingTile_MouseDoubleClick);
         }
         //Methods
         private void Form1_Load(object sender, EventArgs e)                                            
         {
+            EnableDoubleBuffering(panel1);
+            EnableDoubleBuffering(panel2);
+            EnableDoubleBuffering(panel3);
+            EnableDoubleBuffering(workingTile);
+
             lockCreateHalffromFullStripButton1.Image = this.imageList1.Images[6];
 
             mruMenu.LoadFromRegistry();
@@ -2822,6 +2849,114 @@ namespace GTL_Editor
                 }
             }
         }
+        private void workingTile_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (Cursor.Current == Cursors.Default && e.Button == MouseButtons.Left)
+            {
+                isDraggingText = true;
+                dragStartMouseLoc = e.Location;
+                dragStartTextLoc = new Point(hScrollText.Value, vScrollText.Value);
+            }
+        }
+
+        private void workingTile_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isDraggingText && e.Button == MouseButtons.Left)
+            {
+                int deltaX = e.X - dragStartMouseLoc.X;
+                int deltaY = e.Y - dragStartMouseLoc.Y;
+
+                int newX = dragStartTextLoc.X + deltaX;
+                int newY = dragStartTextLoc.Y + deltaY;
+
+                if (hScrollText != null)
+                {
+                    if (newX < hScrollText.Minimum) newX = hScrollText.Minimum;
+                    if (newX > hScrollText.Maximum) newX = hScrollText.Maximum;
+                    hScrollText.Value = newX;
+                }
+                if (vScrollText != null)
+                {
+                    if (newY < vScrollText.Minimum) newY = vScrollText.Minimum;
+                    if (newY > vScrollText.Maximum) newY = vScrollText.Maximum;
+                    vScrollText.Value = newY;
+                }
+
+                if (lblTextPlacement != null)
+                {
+                    lblTextPlacement.Text = hScrollText.Value.ToString() + "," + vScrollText.Value.ToString();
+                }
+
+                drawText();
+            }
+        }
+
+        private void workingTile_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (isDraggingText)
+            {
+                isDraggingText = false;
+                
+                int deltaX = Math.Abs(e.X - dragStartMouseLoc.X);
+                int deltaY = Math.Abs(e.Y - dragStartMouseLoc.Y);
+                if (deltaX < 3 && deltaY < 3)
+                {
+                    int newX = e.X;
+                    int newY = e.Y;
+
+                    if (hScrollText != null)
+                    {
+                        if (newX < hScrollText.Minimum) newX = hScrollText.Minimum;
+                        if (newX > hScrollText.Maximum) newX = hScrollText.Maximum;
+                        hScrollText.Value = newX;
+                    }
+                    if (vScrollText != null)
+                    {
+                        if (newY < vScrollText.Minimum) newY = vScrollText.Minimum;
+                        if (newY > vScrollText.Maximum) newY = vScrollText.Maximum;
+                        vScrollText.Value = newY;
+                    }
+
+                    if (lblTextPlacement != null)
+                    {
+                        lblTextPlacement.Text = hScrollText.Value.ToString() + "," + vScrollText.Value.ToString();
+                    }
+
+                    drawText();
+                }
+            }
+        }
+
+        private void workingTile_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (Cursor.Current == Cursors.Default && e.Button == MouseButtons.Left)
+            {
+                if (lblCurrentWorkingTile.Text == currentworkingtile.FullTile.ToString())
+                {
+                    workingFullTile.Width = workingTile.Width;
+                    workingFullTile.Height = workingTile.Height;
+                    workingFullTile.Image = (Image)workingTile.Image.Clone();
+
+                    if (lockCreateHalffromFullStripButton1.CheckState == CheckState.Unchecked)
+                    {
+                        workingHalfTile.Width = (workingFullTile.Width / 2) + 1;
+                        workingHalfTile.Height = (workingFullTile.Height / 2) + 1;
+                        workingHalfTile.Image = FixedSize(workingTile.Image, workingHalfTile.Width, workingHalfTile.Height);
+                    }
+                }
+                if (lblCurrentWorkingTile.Text == currentworkingtile.HalfTile.ToString())
+                {
+                    workingHalfTile.Width = workingTile.Width;
+                    workingHalfTile.Height = workingTile.Height;
+                    workingHalfTile.Image = workingTile.Image;
+                }
+                resizeWorkingArea();
+                workingTile.Focus();
+                if (pctZoom.Visible)
+                    paintZoom();
+            }
+        }
+
         private void workingTile_MouseClick(object sender, MouseEventArgs e)                           
         {
             if (Cursor.Current != Cursors.Default)
@@ -2854,32 +2989,6 @@ namespace GTL_Editor
                     this.Cursor = Cursors.Default;
                     Cursor.Clip = Screen.PrimaryScreen.Bounds;
                 }
-            }
-            else
-            {
-                if (lblCurrentWorkingTile.Text == currentworkingtile.FullTile.ToString())
-                {
-                    workingFullTile.Width = workingTile.Width;
-                    workingFullTile.Height = workingTile.Height;
-                    workingFullTile.Image = (Image)workingTile.Image.Clone();
-
-                    if (lockCreateHalffromFullStripButton1.CheckState == CheckState.Unchecked)
-                    {
-                        workingHalfTile.Width = (workingFullTile.Width / 2) + 1;
-                        workingHalfTile.Height = (workingFullTile.Height / 2) + 1;
-                        workingHalfTile.Image = FixedSize(workingTile.Image, workingHalfTile.Width, workingHalfTile.Height);
-                    }
-                }
-                if (lblCurrentWorkingTile.Text == currentworkingtile.HalfTile.ToString())
-                {
-                    workingHalfTile.Width = workingTile.Width;
-                    workingHalfTile.Height = workingTile.Height;
-                    workingHalfTile.Image = workingTile.Image;
-                }
-                resizeWorkingArea();
-                workingTile.Focus();
-                if (pctZoom.Visible)
-                    paintZoom();
             }
         }
         private void workingTile_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)              
