@@ -18,820 +18,46 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 
 namespace GTL_Editor 
 {
     public partial class Form1 : Form                                                                 
     {
-        //Classes
-        private class tileDisplay                                                                      : System.Collections.CollectionBase                                  
+        // tileDisplay and positionDisplay extracted to separate files
+
+        public class PositionDataDto
         {
-            //Local Variables
-            private readonly Panel HostPanel;
-            private readonly Form HostForm;
-            private readonly IContainer HostContainer;
-            private int rowBuffer = 4;
-            private Color rowColor = Color.LightBlue;
-            private int currenttile;
-            
-            //Properties
-            public int CurrentTile                                                                     
-            {
-                get
-                {
-                    return currenttile;
-                }
-                set
-                {
-                    currenttile = value;
-                }
-            }
-            public int TotalTiles                                                                      
-            {
-                get
-                {
-                    return HostPanel.Controls.Count - 1;
-                }
-            }
-            //Constructors
-            public tileDisplay(Form hostForm, IContainer hostContainer, Panel hostPanel)               
-            {
-                HostForm = hostForm;
-                HostPanel = hostPanel;
-                HostContainer = hostContainer;
-            }
-            //Index
-            public gtlTileDisplay this[int Index]                                                      
-            {
-                get
-                {
-                    return (gtlTileDisplay)this.List[Index];
-                }
-            }
-            //Methods
-            public gtlTileDisplay AddTile(GTL_File.gtltile Tile)                                       
-            {
-                
-
-                gtlTileDisplay agtlTileDisplay = new gtlTileDisplay();
-
-                agtlTileDisplay.Visible = false;
-
-                this.List.Add(agtlTileDisplay);
-                
-                HostPanel.Controls.Add(agtlTileDisplay);
-
-                if (Tile.FullTile.Height > 15)
-                {
-                    agtlTileDisplay.Height = Tile.FullTile.Height + rowBuffer;
-                }
-                else
-                {
-                    agtlTileDisplay.Height = 15 + rowBuffer;
-                }
-                agtlTileDisplay.Width = HostPanel.Width;
-
-                if (HostPanel.Controls.Count == 1)
-                {
-                    agtlTileDisplay.Top = 0;
-                }
-                if (HostPanel.Controls.Count > 1)
-                {
-                    agtlTileDisplay.Top = ((gtlTileDisplay)HostPanel.Controls[HostPanel.Controls.Count - 2]).Bottom;
-                }
-                if (agtlTileDisplay.Bottom > HostPanel.Height)
-                {
-                    HostPanel.Height = agtlTileDisplay.Bottom;
-                    HostForm.Controls["vScrollBar1"].Enabled = true;
-                }
-                else
-                {
-                    HostForm.Controls["vScrollBar1"].Enabled = false;
-                }
-
-                agtlTileDisplay.fullTile.Top = rowBuffer / 2;
-                agtlTileDisplay.fullTile.Width = Tile.FullTile.Width;
-                agtlTileDisplay.fullTile.Height = Tile.FullTile.Height;
-
-                agtlTileDisplay.halfTile.Top = rowBuffer / 2;
-                agtlTileDisplay.halfTile.Left = agtlTileDisplay.fullTile.Right + 20;
-                agtlTileDisplay.halfTile.Width = Tile.HalfTile.Width;
-                agtlTileDisplay.halfTile.Height = Tile.HalfTile.Height;
-
-                agtlTileDisplay.smallTile.Top = rowBuffer / 2;
-                agtlTileDisplay.smallTile.Left = agtlTileDisplay.halfTile.Right + 20;
-                agtlTileDisplay.smallTile.Width = 15;
-                agtlTileDisplay.smallTile.Height = 15;
-
-                agtlTileDisplay.fullTile.Image = Tile.FullTile;
-                agtlTileDisplay.halfTile.Image = Tile.HalfTile;
-                agtlTileDisplay.smallTile.BackColor = Tile.SmallTile;
-
-                agtlTileDisplay.Tag = this.Count;
-                agtlTileDisplay.fullTile.Tag = this.Count;
-                agtlTileDisplay.halfTile.Tag = this.Count;
-                agtlTileDisplay.smallTile.Tag = this.Count;
-
-                agtlTileDisplay.Click += new System.EventHandler(ClickHandler);
-                agtlTileDisplay.fullTile.Click += new System.EventHandler(ClickHandlerPictureBox);
-                agtlTileDisplay.halfTile.Click += new System.EventHandler(ClickHandlerPictureBox);
-                agtlTileDisplay.smallTile.Click += new System.EventHandler(ClickHandlerPictureBox);
-
-                if (HostPanel.Controls.Count == 1)
-                {
-                    agtlTileDisplay.BackColor = rowColor;
-                }
-                
-
-                agtlTileDisplay.Visible = true;
-
-                return agtlTileDisplay;
-            }
-            public void RemoveTile(int tile)                                                           
-            {
-                HostPanel.Controls.Remove(this[tile]);
-                this[tile].Dispose();
-                this.List.RemoveAt(tile);
-                for (int i = 0; i < HostPanel.Controls.Count; i++)
-                {
-                    HostPanel.Controls[i].Tag = i + 1;
-                    ((PictureBox)HostPanel.Controls[i].Controls["fullTile"]).Tag = i + 1;
-                    ((PictureBox)HostPanel.Controls[i].Controls["halfTile"]).Tag = i + 1;
-                    ((PictureBox)HostPanel.Controls[i].Controls["smallTile"]).Tag = i + 1;
-                }
-            }
-            public void RemoveAllTiles()                                                               
-            {
-                ((Panel)HostPanel).Controls.Clear();
-                this.List.Clear();
-            }
-            public void ClickHandler(Object sender, System.EventArgs e)                                
-            {
-                if (Cursor.Current == Cursors.Help)
-                {
-                    HostForm.Cursor = Cursors.Default;
-                    Help.ShowHelp(HostForm, "gtleditor.chm", HelpNavigator.KeywordIndex, "GTL File Area");
-                }
-                else
-                {
-                    int SelectedCount = 0;
-                    if (Control.ModifierKeys == Keys.Control)
-                    {
-                        ((gtlTileDisplay)sender).BackColor = rowColor;
-                        for (int i = 0; i < ((Panel)HostForm.Controls["panel1"]).Controls.Count; i++)
-                        {
-                            if (((gtlTileDisplay)HostForm.Controls["panel1"].Controls[i]).BackColor == Color.LightBlue)
-                            {
-                                SelectedCount++;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        int totaltile;
-                        int secondtile;
-                        int begintile, endtile;
-                        if (Control.ModifierKeys == Keys.Shift)
-                        {
-                            secondtile = Convert.ToInt32(((gtlTileDisplay)sender).Tag) - 1;
-                            if (secondtile > currenttile)
-                            {
-                                begintile = currenttile;
-                                endtile = secondtile;
-                            }
-                            else
-                            {
-                                begintile = secondtile;
-                                endtile = currenttile;
-                            }
-                            for (int i = begintile; i <= endtile; i++)
-                            {
-                                ((gtlTileDisplay)HostPanel.Controls[i]).BackColor = rowColor;
-                            }
-                            totaltile = endtile - begintile + 1;
-                        }
-                        else
-                        {
-                            clearPanel();
-
-                            currenttile = Convert.ToInt32(((gtlTileDisplay)sender).Tag) - 1;
-
-                            ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Image = ((gtlTileDisplay)sender).fullTile.Image;
-                            ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Width = ((gtlTileDisplay)sender).fullTile.Image.Width;
-                            ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Height = ((gtlTileDisplay)sender).fullTile.Height;
-                            ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Invalidate();
-                            ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Update();
-
-                            if ((((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Width + 24
-                                <= ((GroupBox)HostForm.Controls["groupBox2"]).Width))
-                            {
-                                ((GroupBox)HostForm.Controls["groupBox2"]).Width = 274;
-
-                                ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Left
-                                    = Convert.ToInt32(((GroupBox)HostForm.Controls["groupBox2"]).Width * 0.5
-                                    - ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Width * 0.5);
-                            }
-                            else
-                            {
-                                ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Left = 8;
-                                ((GroupBox)HostForm.Controls["groupBox2"]).Width = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Width + 16;
-                            }
-
-                            if (((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Height + 37
-                                <= ((GroupBox)HostForm.Controls["groupBox2"]).Height)
-                            {
-                                ((GroupBox)HostForm.Controls["groupBox2"]).Height = 381;
-
-                                ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Top
-                                    = Convert.ToInt32(((GroupBox)HostForm.Controls["groupBox2"]).Height * 0.5
-                                    - ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Height * 0.5);
-                            }
-                            else
-                            {
-                                ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Top = 15;
-                                ((GroupBox)HostForm.Controls["groupBox2"]).Height = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Height + 22;
-                            }
-
-
-                            if (((GroupBox)HostForm.Controls["groupBox2"]).Right + 6 > 486)
-                            {
-                                ((Panel)HostForm.Controls["panel1"]).Left = ((GroupBox)HostForm.Controls["groupBox2"]).Right + 6;
-                            }
-                            else
-                            {
-                                ((Panel)HostForm.Controls["panel1"]).Left = 486;
-                            }
-
-                            ((PictureBox)HostForm.Controls["workingFullTile"]).Image = ((gtlTileDisplay)sender).fullTile.Image;
-                            ((PictureBox)HostForm.Controls["workingFullTile"]).Top = ((GroupBox)HostForm.Controls["groupBox2"]).Bottom + 20;
-                            ((PictureBox)HostForm.Controls["workingFullTile"]).Size = ((gtlTileDisplay)sender).fullTile.Size;
-                            ((PictureBox)HostForm.Controls["workingFullTile"]).Invalidate();
-                            ((PictureBox)HostForm.Controls["workingFullTile"]).Update();
-
-                            ((TextBox)HostForm.Controls["groupBox1"].Controls["txtText"]).BackColor = ((gtlTileDisplay)sender).smallTile.BackColor;
-                            ((PictureBox)HostForm.Controls["workingSmallTile"]).BackColor = ((gtlTileDisplay)sender).smallTile.BackColor;
-
-                            ((PictureBox)HostForm.Controls["workingHalfTile"]).Top = ((PictureBox)HostForm.Controls["workingFullTile"]).Bottom + 20;
-
-                            if (((ToolStripButton)((ToolStrip)HostForm.Controls["toolStrip1"]).Items["lockCreateHalffromFullStripButton1"]).CheckState == CheckState.Unchecked)
-                            {
-                                ((PictureBox)HostForm.Controls["workingHalfTile"]).Width = (((PictureBox)HostForm.Controls["workingFullTile"]).Width / 2) + 1;
-                                ((PictureBox)HostForm.Controls["workingHalfTile"]).Height = (((PictureBox)HostForm.Controls["workingFullTile"]).Height / 2) + 1;
-                                ((PictureBox)HostForm.Controls["workingHalfTile"]).Image = FixedSize(((PictureBox)HostForm.Controls["workingFullTile"]).Image, ((PictureBox)HostForm.Controls["workingHalfTile"]).Width, ((PictureBox)HostForm.Controls["workingHalfTile"]).Height);
-                            }
-                            else
-                            {
-                                ((PictureBox)HostForm.Controls["workingHalfTile"]).Image = ((gtlTileDisplay)sender).halfTile.Image;
-                                ((PictureBox)HostForm.Controls["workingHalfTile"]).Top = ((PictureBox)HostForm.Controls["workingFullTile"]).Bottom + 20;
-                                ((PictureBox)HostForm.Controls["workingHalfTile"]).Size = ((gtlTileDisplay)sender).halfTile.Size;
-                            }
-
-                            ((PictureBox)HostForm.Controls["workingHalfTile"]).Invalidate();
-                            ((PictureBox)HostForm.Controls["workingHalfTile"]).Update();
-
-                            ((PictureBox)HostForm.Controls["workingSmallTile"]).Top = ((PictureBox)HostForm.Controls["workingHalfTile"]).Bottom + 20;
-                            ((PictureBox)HostForm.Controls["workingSmallTile"]).Invalidate();
-                            ((PictureBox)HostForm.Controls["workingSmallTile"]).Update();
-
-                            ((gtlTileDisplay)sender).BackColor = rowColor;
-
-                            ((TextBox)HostForm.Controls["groupBox3"].Controls["txtWidth"]).Text = ((PictureBox)HostForm.Controls["workingFullTile"]).Width.ToString();
-                            ((TextBox)HostForm.Controls["groupBox3"].Controls["txtHeight"]).Text = ((PictureBox)HostForm.Controls["workingFullTile"]).Height.ToString();
-                            ((Label)HostForm.Controls["groupBox1"].Controls["lblTileSize"]).Text = ((PictureBox)HostForm.Controls["workingFullTile"]).Width + "," + ((PictureBox)HostForm.Controls["workingFullTile"]).Height;
-                            ((Label)HostForm.Controls["groupBox1"].Controls["lblCurrentWorkingTile"]).Text = "FullTile";
-
-                            ((VScrollBar)HostForm.Controls["groupBox1"].Controls["vScrollText"]).Maximum = ((gtlTileDisplay)sender).fullTile.Height;
-                            ((HScrollBar)HostForm.Controls["groupBox1"].Controls["hScrollText"]).Maximum = ((gtlTileDisplay)sender).fullTile.Width;
-
-                            if (((Panel)HostForm.Controls["groupBox4"].Controls["panel2"].Controls["panel3"]).Controls.Count > 0)
-                            {
-                                for (int i = 0; i < ((Panel)HostForm.Controls["groupBox4"].Controls["panel2"].Controls["panel3"]).Controls.Count; i++)
-                                {
-                                    ((positionTextDisplay)HostForm.Controls["groupBox4"].Controls["panel2"].Controls["panel3"].Controls[i]).TextBackColor = ((gtlTileDisplay)sender).smallTile.BackColor;
-                                }
-                            }
-                            ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpUp"]).Top = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Top - ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpUp"]).Height - 5;
-                            ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpUp"]).Left = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Left + (((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Width / 2) - (((Button)HostForm.Controls["groupBox2"].Controls["btnBumpUp"]).Width / 2);
-
-                            ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpDown"]).Top = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Bottom + 5;
-                            ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpDown"]).Left = ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpUp"]).Left;
-
-                            ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpRight"]).Top = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Top + (((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Height / 2) - (((Button)HostForm.Controls["groupBox2"].Controls["btnBumpRight"]).Height / 2);
-                            ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpRight"]).Left = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Right + 5;
-
-                            ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpLeft"]).Top = ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpRight"]).Top;
-                            ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpLeft"]).Left = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Left - ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpLeft"]).Width - 5;
-
-                            ((PictureBox)HostForm.Controls["pctzoom"]).Image = Zoom(((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Image);
-                            ((PictureBox)HostForm.Controls["pctzoom"]).Width = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Width * 3;
-                            ((PictureBox)HostForm.Controls["pctzoom"]).Height = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Height * 3;
-                            ((PictureBox)HostForm.Controls["pctzoom"]).Top = ((GroupBox)HostForm.Controls["groupBox4"]).Bottom - ((PictureBox)HostForm.Controls["pctzoom"]).Height;
-                            ((PictureBox)HostForm.Controls["pctzoom"]).Left = ((GroupBox)HostForm.Controls["groupBox2"]).Right - ((PictureBox)HostForm.Controls["pctzoom"]).Width;
-                        }
-                    }
-                }
-            }
-            public void ClickHandlerPictureBox(Object sender, System.EventArgs e)                      
-            {
-                if (Cursor.Current == Cursors.Help)
-                {
-                    HostForm.Cursor = Cursors.Default;
-                    Help.ShowHelp(HostForm, "gtleditor.chm", HelpNavigator.KeywordIndex, "GTL File Area");
-                }
-                else
-                {
-                    if (Control.ModifierKeys == Keys.Control)
-                    {
-                        ((gtlTileDisplay)HostPanel.Controls[Convert.ToInt32(((PictureBox)sender).Tag.ToString()) - 1]).BackColor = rowColor;
-                    }
-                    else
-                    {
-                        int secondtile;
-                        int begintile, endtile;
-                        if (Control.ModifierKeys == Keys.Shift)
-                        {
-                            secondtile = Convert.ToInt32(((PictureBox)sender).Tag.ToString()) - 1;
-                            if (secondtile > currenttile)
-                            {
-                                begintile = currenttile;
-                                endtile = secondtile;
-                            }
-                            else
-                            {
-                                begintile = secondtile;
-                                endtile = currenttile;
-                            }
-                            for (int i = begintile; i <= endtile; i++)
-                            {
-                                ((gtlTileDisplay)HostPanel.Controls[i]).BackColor = rowColor;
-                            }
-                        }
-                        else
-                        {
-                            clearPanel();
-
-                            currenttile = Convert.ToInt32(((PictureBox)sender).Tag.ToString()) - 1;
-
-                            ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Image
-                                = ((gtlTileDisplay)HostPanel.Controls[Convert.ToInt32(((PictureBox)sender).Tag.ToString()) - 1]).fullTile.Image;
-                            ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Width
-                                = ((gtlTileDisplay)HostPanel.Controls[Convert.ToInt32(((PictureBox)sender).Tag.ToString()) - 1]).fullTile.Width;
-                            ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Height
-                                = ((gtlTileDisplay)HostPanel.Controls[Convert.ToInt32(((PictureBox)sender).Tag.ToString()) - 1]).fullTile.Height;
-
-                            if ((((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Width + 24
-                                <= ((GroupBox)HostForm.Controls["groupBox2"]).Width))
-                            {
-                                ((GroupBox)HostForm.Controls["groupBox2"]).Width = 350;
-
-                                ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Left
-                                    = Convert.ToInt32(((GroupBox)HostForm.Controls["groupBox2"]).Width * 0.5
-                                    - ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Width * 0.5);
-                            }
-                            else
-                            {
-                                ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Left = 8;
-                                ((GroupBox)HostForm.Controls["groupBox2"]).Width = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Width + 16;
-                            }
-
-                            if (((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Height + 37
-                                <= ((GroupBox)HostForm.Controls["groupBox2"]).Height)
-                            {
-                                ((GroupBox)HostForm.Controls["groupBox2"]).Height = 381;
-
-                                ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Top
-                                    = Convert.ToInt32(((GroupBox)HostForm.Controls["groupBox2"]).Height * 0.5
-                                    - ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Height * 0.5);
-                            }
-                            else
-                            {
-                                ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Top = 15;
-                                ((GroupBox)HostForm.Controls["groupBox2"]).Height = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Height + 22;
-                            }
-
-                            if (((GroupBox)HostForm.Controls["groupBox2"]).Right + 6 > 486)
-                            {
-                                ((Panel)HostForm.Controls["panel1"]).Left = ((GroupBox)HostForm.Controls["groupBox2"]).Right + 6;
-                            }
-                            else
-                            {
-                                ((Panel)HostForm.Controls["panel1"]).Left = 486;
-                            }
-
-                            ((PictureBox)HostForm.Controls["workingFullTile"]).Top = ((GroupBox)HostForm.Controls["groupBox2"]).Bottom + 20;
-                            ((PictureBox)HostForm.Controls["workingFullTile"]).Image = ((gtlTileDisplay)HostPanel.Controls[Convert.ToInt32(((PictureBox)sender).Tag.ToString()) - 1]).fullTile.Image;
-                            ((PictureBox)HostForm.Controls["workingFullTile"]).Size = ((gtlTileDisplay)HostPanel.Controls[Convert.ToInt32(((PictureBox)sender).Tag.ToString()) - 1]).fullTile.Size;
-
-                            ((PictureBox)HostForm.Controls["workingSmallTile"]).BackColor = ((gtlTileDisplay)HostPanel.Controls[Convert.ToInt32(((PictureBox)sender).Tag.ToString()) - 1]).smallTile.BackColor;
-                            ((TextBox)HostForm.Controls["groupBox1"].Controls["txtText"]).BackColor = ((gtlTileDisplay)HostPanel.Controls[Convert.ToInt32(((PictureBox)sender).Tag.ToString()) - 1]).smallTile.BackColor;
-
-                            ((PictureBox)HostForm.Controls["workingHalfTile"]).Top = ((PictureBox)HostForm.Controls["workingFullTile"]).Bottom + 20;
-
-                            if (((ToolStripButton)((ToolStrip)HostForm.Controls["toolStrip1"]).Items["lockCreateHalffromFullStripButton1"]).CheckState == CheckState.Unchecked)
-                            {
-                                ((PictureBox)HostForm.Controls["workingHalfTile"]).Width = (((PictureBox)HostForm.Controls["workingFullTile"]).Width / 2) + 1;
-                                ((PictureBox)HostForm.Controls["workingHalfTile"]).Height = (((PictureBox)HostForm.Controls["workingFullTile"]).Height / 2) + 1;
-                                ((PictureBox)HostForm.Controls["workingHalfTile"]).Image = FixedSize(((PictureBox)HostForm.Controls["workingFullTile"]).Image, ((PictureBox)HostForm.Controls["workingHalfTile"]).Width, ((PictureBox)HostForm.Controls["workingHalfTile"]).Height);
-                            }
-                            else
-                            {
-                                ((PictureBox)HostForm.Controls["workingHalfTile"]).Image = ((gtlTileDisplay)HostPanel.Controls[Convert.ToInt32(((PictureBox)sender).Tag.ToString()) - 1]).halfTile.Image;
-                                ((PictureBox)HostForm.Controls["workingHalfTile"]).Size = ((gtlTileDisplay)HostPanel.Controls[Convert.ToInt32(((PictureBox)sender).Tag.ToString()) - 1]).halfTile.Size;
-                            }
-
-                            ((PictureBox)HostForm.Controls["workingSmallTile"]).Top = ((PictureBox)HostForm.Controls["workingHalfTile"]).Bottom + 20;
-
-                            ((gtlTileDisplay)HostPanel.Controls[Convert.ToInt32(((PictureBox)sender).Tag.ToString()) - 1]).BackColor = rowColor;
-
-                            ((TextBox)HostForm.Controls["groupBox3"].Controls["txtWidth"]).Text = ((PictureBox)HostForm.Controls["workingFullTile"]).Width.ToString();
-                            ((TextBox)HostForm.Controls["groupBox3"].Controls["txtHeight"]).Text = ((PictureBox)HostForm.Controls["workingFullTile"]).Height.ToString(); ;
-                            ((Label)HostForm.Controls["groupBox1"].Controls["lblTileSize"]).Text = ((PictureBox)HostForm.Controls["workingFullTile"]).Width + "," + ((PictureBox)HostForm.Controls["workingFullTile"]).Height;
-                            ((Label)HostForm.Controls["groupBox1"].Controls["lblCurrentWorkingTile"]).Text = "FullTile";
-
-                            ((VScrollBar)HostForm.Controls["groupBox1"].Controls["vScrollText"]).Maximum = ((PictureBox)HostForm.Controls["workingFullTile"]).Height;
-                            ((HScrollBar)HostForm.Controls["groupBox1"].Controls["hScrollText"]).Maximum = ((PictureBox)HostForm.Controls["workingFullTile"]).Width;
-
-                            if (((Panel)HostForm.Controls["groupBox4"].Controls["panel2"].Controls["panel3"]).Controls.Count > 0)
-                            {
-                                for (int i = 0; i < ((Panel)HostForm.Controls["groupBox4"].Controls["panel2"].Controls["panel3"]).Controls.Count; i++)
-                                {
-                                    ((positionTextDisplay)HostForm.Controls["groupBox4"].Controls["panel2"].Controls["panel3"].Controls[i]).TextBackColor = ((gtlTileDisplay)HostPanel.Controls[Convert.ToInt32(((PictureBox)sender).Tag.ToString()) - 1]).smallTile.BackColor;
-                                }
-                            }
-                            ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpUp"]).Top = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Top - ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpUp"]).Height - 5;
-                            ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpUp"]).Left = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Left + (((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Width / 2) - (((Button)HostForm.Controls["groupBox2"].Controls["btnBumpUp"]).Width / 2);
-
-                            ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpDown"]).Top = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Bottom + 5;
-                            ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpDown"]).Left = ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpUp"]).Left;
-
-                            ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpRight"]).Top = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Top + (((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Height / 2) - (((Button)HostForm.Controls["groupBox2"].Controls["btnBumpRight"]).Height / 2);
-                            ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpRight"]).Left = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Right + 5;
-
-                            ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpLeft"]).Top = ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpRight"]).Top;
-                            ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpLeft"]).Left = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Left - ((Button)HostForm.Controls["groupBox2"].Controls["btnBumpLeft"]).Width - 5;
-
-                            ((PictureBox)HostForm.Controls["pctzoom"]).Image = Zoom(((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Image);
-                            ((PictureBox)HostForm.Controls["pctzoom"]).Width = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Width * 3;
-                            ((PictureBox)HostForm.Controls["pctzoom"]).Height = ((PictureBox)HostForm.Controls["groupBox2"].Controls["workingTile"]).Height * 3;
-                            ((PictureBox)HostForm.Controls["pctzoom"]).Top = ((GroupBox)HostForm.Controls["groupBox4"]).Bottom - ((PictureBox)HostForm.Controls["pctzoom"]).Height;
-                            ((PictureBox)HostForm.Controls["pctzoom"]).Left = ((GroupBox)HostForm.Controls["groupBox2"]).Right - ((PictureBox)HostForm.Controls["pctzoom"]).Width;
-                        }
-                    }
-                }
-            }
-            private void clearPanel()                                                                  
-            {
-                for (int i = 0; i < HostPanel.Controls.Count; i++)
-                {
-                    ((gtlTileDisplay)HostPanel.Controls[i]).BackColor = Color.White;
-                }
-            }
-            private void enableControls()                                                              
-            {
-                if (((GroupBox)HostForm.Controls["groupBox1"]).Enabled != true)
-                {
-                    ((GroupBox)HostForm.Controls["groupBox1"]).Enabled = true;
-                    ((GroupBox)HostForm.Controls["groupBox2"]).Enabled = true;
-                    ((GroupBox)HostForm.Controls["groupBox3"]).Enabled = true;
-                    ((GroupBox)HostForm.Controls["groupBox4"]).Enabled = true;
-
-                    ((ToolStripDropDownItem)((MenuStrip)HostForm.Controls["menuStrip1"]).Items[0]).DropDownItems[1].Enabled = true;
-                    ((ToolStripDropDownItem)((MenuStrip)HostForm.Controls["menuStrip1"]).Items[0]).DropDownItems[2].Enabled = true;
-
-                    ((ToolStripDropDownItem)((MenuStrip)HostForm.Controls["menuStrip1"]).Items[0]).DropDownItems[6].Enabled = true;
-                    ((ToolStripDropDownItem)((MenuStrip)HostForm.Controls["menuStrip1"]).Items[0]).DropDownItems[7].Enabled = true;
-                    ((ToolStripDropDownItem)((MenuStrip)HostForm.Controls["menuStrip1"]).Items[0]).DropDownItems[9].Enabled = true;
-
-                    for (int i = 0; i < ((ToolStripDropDownItem)((MenuStrip)HostForm.Controls["menuStrip1"]).Items[1]).DropDownItems.Count; i++)
-                    ((ToolStripDropDownItem)((MenuStrip)HostForm.Controls["menuStrip1"]).Items[1]).DropDownItems[i].Enabled = true;
-
-                    for (int i = 1; i < ((ToolStrip)HostForm.Controls["toolStrip1"]).Items.Count; i++)
-                        ((ToolStrip)HostForm.Controls["toolStrip1"]).Items[i].Enabled = true;
-
-                    if (HostPanel.Controls.Count > 1)
-                    {
-                        ((ToolStrip)HostForm.Controls["toolStrip1"]).Items["deletetoolStripButton1"].Enabled = true;
-                        ((ToolStripDropDownItem)((MenuStrip)HostForm.Controls["menuStrip1"]).Items[3]).DropDownItems[4].Enabled = true;
-                    }
-                    ((PictureBox)HostForm.Controls["groupBox1"].Controls["pctRotate"]).Image = ((ImageList)HostContainer.Components[0]).Images[0];
-
-                    Image RotateImage;
-                    Graphics gRotateText;
-                    RotateImage = ((PictureBox)HostForm.Controls["groupBox1"].Controls["pctRotate"]).Image;
-                    ((PictureBox)HostForm.Controls["groupBox1"].Controls["pctRotate"]).Image = (Image)RotateImage.Clone();
-                    gRotateText = Graphics.FromImage(((PictureBox)HostForm.Controls["groupBox1"].Controls["pctRotate"]).Image);
-                    gRotateText.TranslateTransform(50.0f, 35.0f);
-                    gRotateText.RotateTransform(Convert.ToSingle(((TextBox)HostForm.Controls["groupBox1"].Controls["txtRotate"]).Text));
-                    gRotateText.DrawString(((TextBox)HostForm.Controls["groupBox1"].Controls["txtRotate"]).Text, ((Label)HostForm.Controls["groupBox1"].Controls["lblTextPlacement"]).Font, Brushes.Black, 0.0f, 0.0f);
-                    gRotateText.DrawString(((TextBox)HostForm.Controls["groupBox1"].Controls["txtRotate"]).Text, ((Label)HostForm.Controls["groupBox1"].Controls["lblTextPlacement"]).Font, Brushes.Black, 0.0f, 0.0f);
-                    gRotateText.ResetTransform();
-                    ((PictureBox)HostForm.Controls["groupBox1"].Controls["pctRotate"]).Invalidate();
-                    ((PictureBox)HostForm.Controls["groupBox1"].Controls["pctRotate"]).Update();               
-                }
-            }
-            static Image FixedSize(Image imgPhoto, int Width, int Height)                              
-            {
-                int destWidth = Width;
-                int destHeight = Height;
-                Bitmap bmPhoto = null;
-
-                bmPhoto = new Bitmap(Width, Height, PixelFormat.Format24bppRgb);
-
-                Graphics grPhoto = Graphics.FromImage(bmPhoto);
-
-                grPhoto.DrawImage(imgPhoto,
-                    new Rectangle(0, 0, Width, Height),
-                    new Rectangle(0, 0, imgPhoto.Width, imgPhoto.Height),
-                    GraphicsUnit.Pixel);
-
-                grPhoto.Dispose();
-
-                return bmPhoto;
-            }
-            public static Image Zoom(Image inputImage)                                                 
-            {
-                Bitmap gBitmap = new Bitmap(inputImage.Width * 3, inputImage.Height * 3);
-                Graphics g = Graphics.FromImage((Image)gBitmap);
-                g.PageScale = 3.0f;
-                g.PageUnit = GraphicsUnit.Pixel;
-                g.DrawImage(inputImage, new Rectangle(0, 0, inputImage.Width, inputImage.Height), 0, 0, inputImage.Width, inputImage.Height, GraphicsUnit.Pixel);
-                g.Dispose();
-                return (Image)gBitmap;
-            }
+            public string TxtText { get; set; } = string.Empty;
+            public string TxtIncrement { get; set; } = string.Empty;
+            public bool BolIncrementVisible { get; set; }
+            public string FontName { get; set; } = "Microsoft Sans Serif";
+            public float FontSize { get; set; } = 8.25f;
+            public int FontStyle { get; set; }
+            public int ColorArgb { get; set; }
+            public int Rotation { get; set; }
+            public int PointX { get; set; }
+            public int PointY { get; set; }
+            public string TxtTile { get; set; } = string.Empty;
         }
-        private class positionDisplay                                                                  : System.Collections.CollectionBase                              
+
+        private void UpdateWorkingTileGraphics(Image image)
         {
-            //Local Variables
-            private readonly Form HostForm;
-            private readonly Panel HostPanel;
-            private VScrollBar HostVScrollBar;
-            private PictureBox FullTile;
-            private PictureBox HalfTile;
-            private PictureBox WorkingTile;
-            private int HostPanelHeight;
+            gWorkingTile?.Dispose();
+            gWorkingTile = image != null ? Graphics.FromImage(image) : null;
+        }
 
-            //Constructors
-            public positionDisplay(Form hostForm, Panel hostPanel, VScrollBar hostVScrollBar, PictureBox fulltile, PictureBox halftile, PictureBox workingtile)         
-            {
-                HostForm = hostForm;
-                HostPanel = hostPanel;
-                HostVScrollBar = hostVScrollBar;
-                FullTile = fulltile;
-                HalfTile = halftile;
-                HostPanelHeight = hostPanel.Height;
-                WorkingTile = workingtile;
-            }
+        private void UpdateRotateTextGraphics(Image image)
+        {
+            gRotateText?.Dispose();
+            gRotateText = image != null ? Graphics.FromImage(image) : null;
+        }
 
-            //Index
-            public positionTextDisplay this[int Index]                                                
-            {
-                get
-                {
-                    return (positionTextDisplay)this.List[Index];
-                }
-            }
-
-            //Methods
-            public positionTextDisplay addPosition(TextBox positionText,
-                                                   CheckBox positionIncrement,
-                                                   Point positionPlacement,
-                                                   int positionRotation,
-                                                   string workingSize)                                
-            {
-                positionTextDisplay aPosition = new positionTextDisplay();
-
-                this.List.Add(aPosition);
-                HostPanel.Controls.Add(aPosition);
-
-                aPosition.WorkingSize = workingSize;
-
-                aPosition.Tag = this.Count;
-                aPosition.btnPositionDelete.Tag = this.Count;
-                aPosition.txtPositionIncrement.Tag = this.Count;
-                aPosition.txtPositionText.Tag = this.Count;
-                aPosition.btnPositionPlace.Tag = this.Count;
-                aPosition.btnSelect.Tag = this.Count;
-                aPosition.btnSelect.Text = this.Count.ToString();
-                aPosition.btnRestore.Tag = this.Count;
-                aPosition.lblPositionFont.Tag = this.Count;
-                aPosition.lblPositionFontSize.Tag = this.Count;
-                aPosition.lblRotation.Tag = this.Count;
-                aPosition.cbInclude.Text = "Include " + this.Count.ToString();
-
-                ToolTip tooltip = new ToolTip();
-                tooltip.SetToolTip(aPosition.btnPositionDelete, "Delete Position Data");
-                tooltip.SetToolTip(aPosition.btnRestore, "Restore Position Data to Text Working Area");
-
-                aPosition.txtPositionText.Height = positionText.Height;
-                aPosition.txtPositionText.Text = positionText.Text;
-                aPosition.txtPositionText.ForeColor = positionText.ForeColor;
-                aPosition.txtPositionText.BackColor = positionText.BackColor;
-                aPosition.txtPositionText.Font = positionText.Font;
-
-                aPosition.lblPositionFont.Text = positionText.Font.Name;
-                
-                aPosition.lblPositionFontSize.Text = positionText.Font.Size.ToString();
-
-                aPosition.PointPlacement = positionPlacement;
-                aPosition.btnPositionPlace.Text = positionPlacement.X.ToString() + "," + positionPlacement.Y.ToString();
-
-                if (positionIncrement.Checked == true)
-                {
-                    aPosition.txtPositionIncrement.Visible = true;
-                    aPosition.txtPositionIncrement.Text = "1";
-                    aPosition.txtPositionText.Width = aPosition.txtPositionText.Width - aPosition.txtPositionIncrement.Width - 2;
-                    aPosition.txtPositionText.Left = aPosition.txtPositionIncrement.Right + 2;
-                }
-
-                aPosition.RotationDegrees = positionRotation;
-                aPosition.lblRotation.Text = positionRotation.ToString();
-
-
-                if (HostPanel.Controls.Count == 1)
-                {
-                    aPosition.Top = 0;
-                }
-                if (HostPanel.Controls.Count > 1)
-                {
-                    aPosition.Top = ((positionTextDisplay)HostPanel.Controls[HostPanel.Controls.Count - 2]).Bottom;
-                }
-
-                aPosition.btnPositionDelete.Click += new System.EventHandler(ClickbtnPositionDelete); ;
-                aPosition.btnPositionPlace.Click += new System.EventHandler(ClickbtnPositionPlace);
-                //aPosition.txtPositionText.Click += new System.EventHandler(ClicktxtPostitionText);
-                aPosition.btnRestore.Click += new System.EventHandler(ClickbtnRestore);
-                aPosition.btnSelect.Click += new System.EventHandler(ClickbtnSelect);
-
-
-                return aPosition;
-            }
-            public void highlightPosition(int position)                                               
-            {
-                HostPanel.Controls[position].BackColor = Color.LightBlue;
-                
-            }
-            public void removePosition(int position)                                                  
-            {
-                HostPanel.Controls.Remove(this[position]);
-                this.List.RemoveAt(position);
-
-                if (HostPanel.Controls.Count > 0)
-                {
-                    for (int i = 0; i < HostPanel.Controls.Count; i++)
-                    {
-                        if (i == 0)
-                        {
-                            HostPanel.Controls[i].Top = 0;
-                        }
-                        else
-                        {
-                            HostPanel.Controls[i].Top = HostPanel.Controls[i - 1].Bottom;
-                        }
-
-                        HostPanel.Controls[i].Tag = i + 1;
-                        ((Button)HostPanel.Controls[i].Controls["btnPositionDelete"]).Tag = i + 1;
-                        ((TextBox)HostPanel.Controls[i].Controls["txtPositionIncrement"]).Tag = i + 1;
-                        ((TextBox)HostPanel.Controls[i].Controls["txtPositionText"]).Tag = i + 1;
-                        ((Button)HostPanel.Controls[i].Controls["btnPositionPlace"]).Tag = i + 1;
-                        ((Button)HostPanel.Controls[i].Controls["btnSelect"]).Tag = i + 1;
-                        ((Button)HostPanel.Controls[i].Controls["btnSelect"]).Text = (i + 1).ToString();
-                        ((Button)HostPanel.Controls[i].Controls["btnRestore"]).Tag = i + 1;
-                        ((Label)HostPanel.Controls[i].Controls["lblPositionFont"]).Tag = i + 1;
-                        ((Label)HostPanel.Controls[i].Controls["lblPositionFontSize"]).Tag = i + 1;
-                        ((Label)HostPanel.Controls[i].Controls["lblRotation"]).Tag = i + 1;
-                    }
-
-                    HostVScrollBar.Maximum = HostPanel.Controls.Count - 1;
-
-                    HostPanel.Height = HostPanel.Controls[HostPanel.Controls.Count - 1].Bottom;
-                    if (HostPanel.Height < HostVScrollBar.Height)
-                    {
-                        HostPanel.Height = HostVScrollBar.Height;
-                    }
-                    
-                    if (HostPanel.Controls[HostPanel.Controls.Count - 1].Bottom < HostVScrollBar.Height)
-                    {
-                        HostVScrollBar.Enabled = false;
-                    }
-                }
-
-            }
-            public void removeAllPositions()                                                          
-            {
-                ((Panel)HostPanel).Controls.Clear();
-
-            }
-            public void ClicktxtPostitionText(Object sender, System.EventArgs e)                      
-            {
-
-                //highlightPosition(Convert.ToInt32(((TextBox)sender).Tag) - 1);
-                HostPanel.Controls[Convert.ToInt32(((TextBox)sender).Tag) - 1].BackColor = Color.LightBlue;
-            }
-            public void ClickbtnPositionDelete(Object sender, System.EventArgs e)                     
-            {
-                if (Cursor.Current == Cursors.Help)
-                {
-                    HostPanel.Cursor = Cursors.Default;
-                    Help.ShowHelp(HostPanel, "gtleditor.chm", HelpNavigator.KeywordIndex, "Delete Stored Text Data Button");
-                }
-                else
-                {
-                    removePosition(Convert.ToInt32(((Button)sender).Tag) - 1);
-                }
-            }
-            public void ClickbtnPositionPlace(Object sender, System.EventArgs e)                      
-            {
-                if (Cursor.Current == Cursors.Help)
-                {
-                    HostPanel.Cursor = Cursors.Default;
-                    Help.ShowHelp(HostPanel, "gtleditor.chm", HelpNavigator.KeywordIndex, "Stored Text Data Area");
-                }
-                else
-                {
-
-                    string workingString;
-                    Image positionImage;
-                    Graphics gPositionText;
-                    positionTextDisplay workingPosition = ((positionTextDisplay)HostPanel.Controls[Convert.ToInt32(((Button)sender).Tag) - 1]);
-                    SolidBrush drawBrush = new SolidBrush(workingPosition.txtPositionText.ForeColor);
-
-                    Regex _Regex = new Regex(@"#");
-                    workingString = _Regex.Replace(workingPosition.txtPositionText.Text, "");
-
-                    if (workingPosition.WorkingSize == "FullTile")
-                    {
-                        positionImage = FullTile.Image;
-                        FullTile.Image = (Image)positionImage.Clone();
-                        gPositionText = Graphics.FromImage(FullTile.Image);
-                        gPositionText.TranslateTransform(workingPosition.PointPlacement.X, workingPosition.PointPlacement.Y);
-                        gPositionText.RotateTransform(workingPosition.RotationDegrees);
-                        gPositionText.DrawString(workingString, workingPosition.txtPositionText.Font, drawBrush, 0.0f, 0.0f);
-                        gPositionText.DrawString(workingString, workingPosition.txtPositionText.Font, drawBrush, 0.0f, 0.0f);
-                        gPositionText.ResetTransform();
-                        FullTile.Invalidate();
-                        FullTile.Update();
-                    }
-                    else
-                    {
-                        positionImage = HalfTile.Image;
-                        HalfTile.Image = (Image)positionImage.Clone();
-                        gPositionText = Graphics.FromImage(HalfTile.Image);
-                        gPositionText.TranslateTransform(workingPosition.PointPlacement.X, workingPosition.PointPlacement.Y);
-                        gPositionText.RotateTransform(workingPosition.RotationDegrees);
-                        gPositionText.DrawString(workingString, workingPosition.txtPositionText.Font, drawBrush, 0.0f, 0.0f);
-                        gPositionText.DrawString(workingString, workingPosition.txtPositionText.Font, drawBrush, 0.0f, 0.0f);
-                        gPositionText.ResetTransform();
-                        HalfTile.Invalidate();
-                        HalfTile.Update();
-                    }
-                    if (workingPosition.txtPositionIncrement.Visible)
-                    {
-                        try
-                        {
-                            _Regex = new Regex(@"#\d+");
-                            Match m = _Regex.Match(workingPosition.txtPositionText.Text);
-                            if (m.Success)
-                            {
-                                workingPosition.txtPositionText.Text = _Regex.Replace(workingPosition.txtPositionText.Text, "#" + Convert.ToString((Convert.ToInt32(m.Value.Substring(1)) + Convert.ToInt32(workingPosition.txtPositionIncrement.Text))));
-                            }
-                        }
-                        catch
-                        {
-
-                        }
-                    }
-                }
-                WorkingTile.Focus();
-            }
-
-            public void ClickbtnSelect(Object sender, System.EventArgs e)
-            {
-                positionTextDisplay workingPosition = ((positionTextDisplay)HostPanel.Controls[Convert.ToInt32(((Button)sender).Tag) - 1]);
-                ((Button)HostForm.Controls["groupBox1"].Controls["btnReplace"]).Text = "Replace " + ((Button)sender).Tag.ToString();
-                ((Button)HostForm.Controls["groupBox1"].Controls["btnReplace"]).Tag = (Convert.ToInt32(((Button)sender).Tag) - 1);
-                ((Button)HostForm.Controls["groupBox1"].Controls["btnReplace"]).Enabled = true;
-            }
-            public void ClickbtnRestore(Object sender, System.EventArgs e)                            
-            {
-                positionTextDisplay workingPosition = ((positionTextDisplay)HostPanel.Controls[Convert.ToInt32(((Button)sender).Tag) - 1]);
-                
-                ((TextBox)HostForm.Controls["groupBox1"].Controls["txtText"]).Font = workingPosition.txtPositionText.Font;
-                ((TextBox)HostForm.Controls["groupBox1"].Controls["txtText"]).ForeColor = workingPosition.txtPositionText.ForeColor;
-
-                if (workingPosition.txtPositionIncrement.Visible)
-                {
-                    ((CheckBox)HostForm.Controls["groupBox1"].Controls["chkIncrement"]).Checked = true;
-                }
-                ((Label)HostForm.Controls["groupBox1"].Controls["lblTextPlacement"]).Text = workingPosition.btnPositionPlace.Text;
-
-                ((ScrollBar)HostForm.Controls["groupBox1"].Controls["hScrollText"]).Value = workingPosition.PointPlacement.X;
-                ((ScrollBar)HostForm.Controls["groupBox1"].Controls["vScrollText"]).Value = workingPosition.PointPlacement.Y;
-
-                ((TextBox)HostForm.Controls["groupBox1"].Controls["txtRotate"]).Text = workingPosition.RotationDegrees.ToString();
-                ((ScrollBar)HostForm.Controls["groupBox1"].Controls["hScrollRotate"]).Value = workingPosition.RotationDegrees;
-
-                ((TextBox)HostForm.Controls["groupBox1"].Controls["txtText"]).Text = workingPosition.txtPositionText.Text;
-            }
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            gWorkingTile?.Dispose();
+            gRotateText?.Dispose();
+            base.OnFormClosed(e);
         }
         [Serializable]
         private struct positionData                                                                    
@@ -1058,7 +284,7 @@ namespace GTL_Editor
                 this.vScrollBar1.Value = 0;
                 this.panel1.Top = -TileDisplay[vScrollBar1.Value].Top + 49;
 
-                gWorkingTile = Graphics.FromImage(workingTile.Image);
+                UpdateWorkingTileGraphics(workingTile.Image);
 
                 groupBox1.Enabled = true;
                 groupBox2.Enabled = true;
@@ -1137,7 +363,7 @@ namespace GTL_Editor
 
                 //RotateImage = pctRotate.Image;
                 //pctRotate.Image = (Image)RotateImage.Clone();
-                //gRotateText = Graphics.FromImage(pctRotate.Image);
+                //UpdateRotateTextGraphics(pctRotate.Image);
                 //gRotateText.TranslateTransform(50.0f, 35.0f);
                 //gRotateText.DrawString("0", lblTextPlacement.Font, Brushes.Black, 0.0f, 0.0f);
 
@@ -1444,7 +670,7 @@ namespace GTL_Editor
                 
                 workingTile.Invalidate();
                 workingTile.Update();
-                gWorkingTile = Graphics.FromImage(workingTile.Image);
+                UpdateWorkingTileGraphics(workingTile.Image);
                 currentWorkingTile = (int)currentworkingtile.FullTile;
                 lblCurrentWorkingTile.Text = currentworkingtile.FullTile.ToString();
                 resizeWorkingArea();
@@ -1469,7 +695,7 @@ namespace GTL_Editor
                 centerWorkingTile();
                 workingTile.Invalidate();
                 workingTile.Update();
-                gWorkingTile = Graphics.FromImage(workingTile.Image);
+                UpdateWorkingTileGraphics(workingTile.Image);
                 currentWorkingTile = (int)currentworkingtile.HalfTile;
                 lblCurrentWorkingTile.Text = currentworkingtile.HalfTile.ToString();
                 centerWorkingTile();
@@ -1716,7 +942,7 @@ namespace GTL_Editor
             try
             {
                 pctRotate.Image = (Image)RotateImage.Clone();
-                gRotateText = Graphics.FromImage(pctRotate.Image);
+                UpdateRotateTextGraphics(pctRotate.Image);
                 gRotateText.TranslateTransform(50.0f, 35.0f);
                 gRotateText.RotateTransform(hScrollRotate.Value);
                 gRotateText.DrawString(hScrollRotate.Value.ToString(), lblTextPlacement.Font, Brushes.Black, 0.0f, 0.0f);
@@ -1740,12 +966,12 @@ namespace GTL_Editor
             if (lblCurrentWorkingTile.Text == currentworkingtile.FullTile.ToString())
             {
                 workerTile = (Image)workingFullTile.Image.Clone();
-                gWorkingTile = Graphics.FromImage(workerTile);
+                UpdateWorkingTileGraphics(workerTile);
             }
             else
             {
                 workerTile = (Image)workingHalfTile.Image.Clone();
-                gWorkingTile = Graphics.FromImage(workerTile);
+                UpdateWorkingTileGraphics(workerTile);
             }
             gWorkingTile.TranslateTransform(Convert.ToSingle(hScrollText.Value), Convert.ToSingle(vScrollText.Value));
 
@@ -2020,7 +1246,7 @@ namespace GTL_Editor
             else
             {
 
-                ArrayList DeleteList = new ArrayList();
+                List<int> DeleteList = new List<int>();
 
                 if (TileDisplay.Count > 1)
                 {
@@ -2031,11 +1257,11 @@ namespace GTL_Editor
                             DeleteList.Add(i);
                         }
                     }
-                    DeleteList.TrimToSize();
+                    
 
                     for (int i = DeleteList.Count - 1; i >= 0; i--)
                     {
-                        TileDisplay.RemoveTile((int)DeleteList[i]);
+                        TileDisplay.RemoveTile(DeleteList[i]);
                     }
 
                     panel1.Controls[0].Top = 0;
@@ -2269,7 +1495,7 @@ namespace GTL_Editor
             else
             {
 
-                ArrayList DeleteList = new ArrayList();
+                List<int> DeleteList = new List<int>();
 
                 if (TileDisplay.Count > 1)
                 {
@@ -2280,11 +1506,11 @@ namespace GTL_Editor
                             DeleteList.Add(i);
                         }
                     }
-                    DeleteList.TrimToSize();
+                    
 
                     for (int i = DeleteList.Count - 1; i >= 0; i--)
                     {
-                        TileDisplay.RemoveTile((int)DeleteList[i]);
+                        TileDisplay.RemoveTile(DeleteList[i]);
                     }
 
                     panel1.Controls[0].Top = 0;
@@ -2502,7 +1728,7 @@ namespace GTL_Editor
                 paintZoom();
             workingTile.Invalidate();
             workingTile.Update();
-            gWorkingTile = Graphics.FromImage(workingTile.Image);
+            UpdateWorkingTileGraphics(workingTile.Image);
             currentWorkingTile = (int)currentworkingtile.FullTile;
             lblCurrentWorkingTile.Text = currentworkingtile.FullTile.ToString();
         }
@@ -2514,7 +1740,7 @@ namespace GTL_Editor
             centerWorkingTile();
             workingTile.Invalidate();
             workingTile.Update();
-            gWorkingTile = Graphics.FromImage(workingTile.Image);
+            UpdateWorkingTileGraphics(workingTile.Image);
             currentWorkingTile = (int)currentworkingtile.HalfTile;
             lblCurrentWorkingTile.Text = currentworkingtile.HalfTile.ToString();
         }
@@ -2644,7 +1870,7 @@ namespace GTL_Editor
                 paintZoom();
             workingTile.Invalidate();
             workingTile.Update();
-            gWorkingTile = Graphics.FromImage(workingTile.Image);
+            UpdateWorkingTileGraphics(workingTile.Image);
             currentWorkingTile = (int)currentworkingtile.FullTile;
             lblCurrentWorkingTile.Text = currentworkingtile.FullTile.ToString();
         }
@@ -2656,7 +1882,7 @@ namespace GTL_Editor
             centerWorkingTile();
             workingTile.Invalidate();
             workingTile.Update();
-            gWorkingTile = Graphics.FromImage(workingTile.Image);
+            UpdateWorkingTileGraphics(workingTile.Image);
             currentWorkingTile = (int)currentworkingtile.HalfTile;
             lblCurrentWorkingTile.Text = currentworkingtile.HalfTile.ToString();
         }
@@ -2673,53 +1899,36 @@ namespace GTL_Editor
 
             if (saveFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                ArrayList positionData = new ArrayList();
-
-                positionData pData;
-
+                List<PositionDataDto> dtoList = new List<PositionDataDto>();
                 positionTextDisplay workingPosition = new positionTextDisplay();
 
                 for (int i = 0; i < panel3.Controls.Count; i++)
                 {
                     workingPosition = (positionTextDisplay)panel3.Controls[i];
 
-                    pData.txtText = workingPosition.txtPositionText.Text;
-                    pData.txtIncrement = workingPosition.txtPositionIncrement.Text;
-                    pData.bolIncrementVisible = workingPosition.txtPositionIncrement.Visible;
-                    pData.txtFont = workingPosition.txtPositionText.Font;
-                    pData.txtColor = workingPosition.txtPositionText.ForeColor;
-                    pData.txtRotation = workingPosition.RotationDegrees;
-                    pData.txtPoint = workingPosition.PointPlacement;
-                    pData.txtTile = workingPosition.WorkingSize;
-
-                    positionData.Add(pData);
+                    dtoList.Add(new PositionDataDto
+                    {
+                        TxtText = workingPosition.txtPositionText.Text,
+                        TxtIncrement = workingPosition.txtPositionIncrement.Text,
+                        BolIncrementVisible = workingPosition.txtPositionIncrement.Visible,
+                        FontName = workingPosition.txtPositionText.Font.Name,
+                        FontSize = workingPosition.txtPositionText.Font.Size,
+                        FontStyle = (int)workingPosition.txtPositionText.Font.Style,
+                        ColorArgb = workingPosition.txtPositionText.ForeColor.ToArgb(),
+                        Rotation = workingPosition.RotationDegrees,
+                        PointX = workingPosition.PointPlacement.X,
+                        PointY = workingPosition.PointPlacement.Y,
+                        TxtTile = workingPosition.WorkingSize
+                    });
                 }
 
                 try 
                 {
-                    using (BinaryWriter writer = new BinaryWriter(File.Open(saveFileDialog1.FileName, FileMode.Create, FileAccess.Write, FileShare.None)))
-                    {
-                        writer.Write("GTP2");
-                        writer.Write(positionData.Count);
-                        foreach (positionData item in positionData)
-                        {
-                            writer.Write(item.txtText ?? "");
-                            writer.Write(item.txtIncrement ?? "");
-                            writer.Write(item.bolIncrementVisible);
-                            writer.Write(item.txtFont.Name);
-                            writer.Write(item.txtFont.Size);
-                            writer.Write((int)item.txtFont.Style);
-                            writer.Write(item.txtColor.ToArgb());
-                            writer.Write(item.txtRotation);
-                            writer.Write(item.txtPoint.X);
-                            writer.Write(item.txtPoint.Y);
-                            writer.Write(item.txtTile ?? "");
-                        }
-                    }
+                    string json = JsonSerializer.Serialize(dtoList, new JsonSerializerOptions { WriteIndented = true });
+                    File.WriteAllText(saveFileDialog1.FileName, json);
                 }
                 catch
                 {
-
                 }
             }
         }
@@ -2733,50 +1942,27 @@ namespace GTL_Editor
             {
                 try
                 {
-                    using (BinaryReader reader = new BinaryReader(File.Open(openFileDialog1.FileName, FileMode.Open, FileAccess.Read, FileShare.None)))
+                    string json = File.ReadAllText(openFileDialog1.FileName);
+                    List<PositionDataDto> dtoList = JsonSerializer.Deserialize<List<PositionDataDto>>(json);
+                    if (dtoList != null)
                     {
-                        string sig = reader.ReadString();
-                        if (sig != "GTP2")
+                        foreach (PositionDataDto workingdata in dtoList)
                         {
-                            throw new InvalidDataException("Unsupported format.");
-                        }
-                        int count = reader.ReadInt32();
-                        for (int i = 0; i < count; i++)
-                        {
-                            positionData workingdata = new positionData();
-                            workingdata.txtText = reader.ReadString();
-                            workingdata.txtIncrement = reader.ReadString();
-                            workingdata.bolIncrementVisible = reader.ReadBoolean();
-
-                            string fontName = reader.ReadString();
-                            float fontSize = reader.ReadSingle();
-                            FontStyle fontStyle = (FontStyle)reader.ReadInt32();
-                            workingdata.txtFont = new Font(fontName, fontSize, fontStyle);
-
-                            workingdata.txtColor = Color.FromArgb(reader.ReadInt32());
-                            workingdata.txtRotation = reader.ReadInt32();
-
-                            int pointX = reader.ReadInt32();
-                            int pointY = reader.ReadInt32();
-                            workingdata.txtPoint = new Point(pointX, pointY);
-
-                            workingdata.txtTile = reader.ReadString();
-
                             TextBox newTextbox = new TextBox();
-                            newTextbox.Text = workingdata.txtText;
-                            newTextbox.Font = workingdata.txtFont;
-                            newTextbox.Height = workingdata.txtFont.Height;
-                            newTextbox.ForeColor = workingdata.txtColor;
+                            newTextbox.Text = workingdata.TxtText;
+                            newTextbox.Font = new Font(workingdata.FontName, workingdata.FontSize, (FontStyle)workingdata.FontStyle);
+                            newTextbox.Height = newTextbox.Font.Height;
+                            newTextbox.ForeColor = Color.FromArgb(workingdata.ColorArgb);
                             newTextbox.BackColor = txtText.BackColor;
 
                             CheckBox newCheckbox = new CheckBox();
-                            newCheckbox.Checked = workingdata.bolIncrementVisible;
+                            newCheckbox.Checked = workingdata.BolIncrementVisible;
 
                             PositionDisplay.addPosition(newTextbox,
                                                         newCheckbox,
-                                                        workingdata.txtPoint,
-                                                        Convert.ToInt32(workingdata.txtRotation),
-                                                        workingdata.txtTile);
+                                                        new Point(workingdata.PointX, workingdata.PointY),
+                                                        workingdata.Rotation,
+                                                        workingdata.TxtTile);
 
                             if (panel2.Controls[panel2.Controls.Count - 1].Bottom > panel2.Height)
                             {
@@ -3250,7 +2436,7 @@ namespace GTL_Editor
             workerTile = (Image)workingTile.Image.Clone();
             bmpTile = (Bitmap)workingTile.Image.Clone();
 
-            gWorkingTile = Graphics.FromImage(workerTile);
+            UpdateWorkingTileGraphics(workerTile);
 
             LinearGradientBrush linearBrush;
 
@@ -3331,7 +2517,7 @@ namespace GTL_Editor
             SolidBrush drawBrush = new SolidBrush(txtText.ForeColor);
 
             workerTile = (Image)workingTile.Image.Clone();
-            gWorkingTile = Graphics.FromImage(workerTile);
+            UpdateWorkingTileGraphics(workerTile);
 
             Pen pen = new Pen(pctTransparentColor.BackColor);
            
@@ -3443,7 +2629,7 @@ namespace GTL_Editor
             workerTile = (Image)workingFullTile.Image.Clone();
             bmpTile = (Bitmap)workingFullTile.Image.Clone();
 
-            gWorkingTile = Graphics.FromImage(workerTile);
+            UpdateWorkingTileGraphics(workerTile);
 
             LinearGradientBrush linearBrush;
 
@@ -4588,3 +3774,4 @@ namespace GTL_Editor
         }
     }
 }
+
