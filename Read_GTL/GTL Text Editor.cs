@@ -1377,13 +1377,21 @@ namespace GTL_Editor
                     groupBox2.Controls["workingTile"].Top = 15;
                     groupBox2.Height = groupBox2.Controls["workingTile"].Height + 22;
                 }
-            if (groupBox2.Right + 6 > 760)
+            if (panel1 != null && vScrollBar1 != null)
             {
-                panel1.Left = groupBox2.Right + 6;
-            }
-            else
-            {
-                panel1.Left = 760;
+                panel1.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+
+                if (groupBox2.Right + 6 > 760)
+                {
+                    panel1.Left = groupBox2.Right + 6;
+                }
+                else
+                {
+                    panel1.Left = 760;
+                }
+
+                panel1.Width = vScrollBar1.Left - panel1.Left;
+                panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             }
             workingFullTile.Top = groupBox2.Bottom + 20;
             workingHalfTile.Top = workingFullTile.Bottom + 20;
