@@ -960,6 +960,18 @@ namespace GTL_Editor
         }
         public void drawText()                                                                         
         {
+            if (lblCurrentWorkingTile == null || 
+                workingFullTile?.Image == null || 
+                workingHalfTile?.Image == null || 
+                txtText == null || 
+                hScrollText == null || 
+                vScrollText == null || 
+                toolAntiAliasButton1 == null || 
+                hScrollRotate == null || 
+                workingTile == null)
+            {
+                return;
+            }
             Image workerTile;
             workerTile = null;
             SolidBrush drawBrush = new SolidBrush(txtText.ForeColor);
@@ -988,7 +1000,7 @@ namespace GTL_Editor
             workingTile.Image = workerTile;
             workingTile.Invalidate();
             workingTile.Update();
-            if (pctZoom.Visible)
+            if (pctZoom != null && pctZoom.Visible)
                 paintZoom();
         }
         private void resizeWorkingArea()                                                               
@@ -3698,6 +3710,10 @@ namespace GTL_Editor
         }
         private void paintZoom()                                                                       
         {
+            if (workingTile?.Image == null || pctZoom == null || groupBox4 == null || groupBox2 == null)
+            {
+                return;
+            }
             Image tempImage = Bitmap_Utilities.Zoom(workingTile.Image);
             pctZoom.Width = tempImage.Width;
             pctZoom.Height = tempImage.Height;
@@ -3714,50 +3730,71 @@ namespace GTL_Editor
             if (Cursor.Current == Cursors.Help)
             {
                 this.Cursor = Cursors.Default;
-                workingTile.Focus();
+                if (workingTile != null) workingTile.Focus();
                 Help.ShowHelp(this, "gtleditor.chm", HelpNavigator.KeywordIndex, "Zoomed Working Tile Image");
             }
         }
         private void txtText_Validated(object sender, EventArgs e)                                     
         {
-            this.toolFontNameButton.Text = txtText.Font.Name;
-            this.toolFontSizeButton.Text = txtText.Font.Size.ToString(); ;
+            if (toolFontNameButton != null && toolFontSizeButton != null && txtText != null)
+            {
+                this.toolFontNameButton.Text = txtText.Font.Name;
+                this.toolFontSizeButton.Text = txtText.Font.Size.ToString();
+            }
             drawText();
         }
         private void txtText_SizeChanged(object sender, EventArgs e)                                   
         {
-            this.toolFontNameButton.Text = txtText.Font.Name;
-            this.toolFontSizeButton.Text = txtText.Font.Size.ToString(); ;
+            if (toolFontNameButton != null && toolFontSizeButton != null && txtText != null)
+            {
+                this.toolFontNameButton.Text = txtText.Font.Name;
+                this.toolFontSizeButton.Text = txtText.Font.Size.ToString();
+            }
             drawText();
         }
         private void txtText_FontChanged(object sender, EventArgs e)                                   
         {
-            this.toolFontNameButton.Text = txtText.Font.Name;
-            this.toolFontSizeButton.Text = txtText.Font.Size.ToString(); ;
+            if (toolFontNameButton != null && toolFontSizeButton != null && txtText != null)
+            {
+                this.toolFontNameButton.Text = txtText.Font.Name;
+                this.toolFontSizeButton.Text = txtText.Font.Size.ToString();
+            }
             drawText();
         }
         private void txtText_BackColorChanged(object sender, EventArgs e)                              
         {
-            this.toolFontNameButton.Text = txtText.Font.Name;
-            this.toolFontSizeButton.Text = txtText.Font.Size.ToString(); ;
+            if (toolFontNameButton != null && toolFontSizeButton != null && txtText != null)
+            {
+                this.toolFontNameButton.Text = txtText.Font.Name;
+                this.toolFontSizeButton.Text = txtText.Font.Size.ToString();
+            }
             drawText();
         }
         private void txtText_StyleChanged(object sender, EventArgs e)                                  
         {
-            this.toolFontNameButton.Text = txtText.Font.Name;
-            this.toolFontSizeButton.Text = txtText.Font.Size.ToString(); ;
+            if (toolFontNameButton != null && toolFontSizeButton != null && txtText != null)
+            {
+                this.toolFontNameButton.Text = txtText.Font.Name;
+                this.toolFontSizeButton.Text = txtText.Font.Size.ToString();
+            }
             drawText();
         }
         private void lblTileSize_TextChanged(object sender, EventArgs e)                               
         {
-            this.toolFontNameButton.Text = txtText.Font.Name;
-            this.toolFontSizeButton.Text = txtText.Font.Size.ToString(); ;
+            if (toolFontNameButton != null && toolFontSizeButton != null && txtText != null)
+            {
+                this.toolFontNameButton.Text = txtText.Font.Name;
+                this.toolFontSizeButton.Text = txtText.Font.Size.ToString();
+            }
             drawText();
         }
         private void lblTextPlacement_TextChanged(object sender, EventArgs e)                          
         {
-            this.toolFontNameButton.Text = txtText.Font.Name;
-            this.toolFontSizeButton.Text = txtText.Font.Size.ToString(); ;
+            if (toolFontNameButton != null && toolFontSizeButton != null && txtText != null)
+            {
+                this.toolFontNameButton.Text = txtText.Font.Name;
+                this.toolFontSizeButton.Text = txtText.Font.Size.ToString();
+            }
             drawText();
         }
         private void toolAntiAliasButton1_Click(object sender, EventArgs e)                            
