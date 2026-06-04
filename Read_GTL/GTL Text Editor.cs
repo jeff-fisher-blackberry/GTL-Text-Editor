@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization.Formatters.Binary;
 
 namespace GTL_Editor 
 {
@@ -2696,17 +2695,32 @@ namespace GTL_Editor
                     positionData.Add(pData);
                 }
 
-                BinaryFormatter binData = new BinaryFormatter();
-                Stream fStream = new FileStream(saveFileDialog1.FileName, FileMode.Create, FileAccess.Write, FileShare.None);
                 try 
                 {
-                    binData.Serialize(fStream, positionData);
+                    using (BinaryWriter writer = new BinaryWriter(File.Open(saveFileDialog1.FileName, FileMode.Create, FileAccess.Write, FileShare.None)))
+                    {
+                        writer.Write("GTP2");
+                        writer.Write(positionData.Count);
+                        foreach (positionData item in positionData)
+                        {
+                            writer.Write(item.txtText ?? "");
+                            writer.Write(item.txtIncrement ?? "");
+                            writer.Write(item.bolIncrementVisible);
+                            writer.Write(item.txtFont.Name);
+                            writer.Write(item.txtFont.Size);
+                            writer.Write((int)item.txtFont.Style);
+                            writer.Write(item.txtColor.ToArgb());
+                            writer.Write(item.txtRotation);
+                            writer.Write(item.txtPoint.X);
+                            writer.Write(item.txtPoint.Y);
+                            writer.Write(item.txtTile ?? "");
+                        }
+                    }
                 }
                 catch
                 {
 
                 }
-                fStream.Close();
             }
         }
         private void openPositiontoolStripMenuItem_Click(object sender, EventArgs e)                   
@@ -2717,37 +2731,57 @@ namespace GTL_Editor
 
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
-                positionTextDisplay workingPosition = new positionTextDisplay();
-
-                Stream fStream = new FileStream(openFileDialog1.FileName, FileMode.Open, FileAccess.Read, FileShare.None);
-                BinaryFormatter binData = new BinaryFormatter();
-                ArrayList PositionData = null;
                 try
                 {
-                    PositionData = (ArrayList)binData.Deserialize(fStream);
-                    for (int i = 0; i < PositionData.Count; i++)
+                    using (BinaryReader reader = new BinaryReader(File.Open(openFileDialog1.FileName, FileMode.Open, FileAccess.Read, FileShare.None)))
                     {
-                        positionData workingdata = (positionData)PositionData[i];
-
-                        TextBox newTextbox = new TextBox();
-                        newTextbox.Text = workingdata.txtText;
-                        newTextbox.Font = workingdata.txtFont;
-                        newTextbox.Height = workingdata.txtFont.Height;
-                        newTextbox.ForeColor = workingdata.txtColor;
-                        newTextbox.BackColor = txtText.BackColor;
-
-                        CheckBox newCheckbox = new CheckBox();
-                        newCheckbox.Checked = workingdata.bolIncrementVisible;
-
-                        PositionDisplay.addPosition(newTextbox,
-                                                    newCheckbox,
-                                                    workingdata.txtPoint,
-                                                    Convert.ToInt32(workingdata.txtRotation),
-                                                    workingdata.txtTile);
-
-                        if (panel2.Controls[panel2.Controls.Count - 1].Bottom > panel2.Height)
+                        string sig = reader.ReadString();
+                        if (sig != "GTP2")
                         {
-                            vScrollBar2.Enabled = true;
+                            throw new InvalidDataException("Unsupported format.");
+                        }
+                        int count = reader.ReadInt32();
+                        for (int i = 0; i < count; i++)
+                        {
+                            positionData workingdata = new positionData();
+                            workingdata.txtText = reader.ReadString();
+                            workingdata.txtIncrement = reader.ReadString();
+                            workingdata.bolIncrementVisible = reader.ReadBoolean();
+
+                            string fontName = reader.ReadString();
+                            float fontSize = reader.ReadSingle();
+                            FontStyle fontStyle = (FontStyle)reader.ReadInt32();
+                            workingdata.txtFont = new Font(fontName, fontSize, fontStyle);
+
+                            workingdata.txtColor = Color.FromArgb(reader.ReadInt32());
+                            workingdata.txtRotation = reader.ReadInt32();
+
+                            int pointX = reader.ReadInt32();
+                            int pointY = reader.ReadInt32();
+                            workingdata.txtPoint = new Point(pointX, pointY);
+
+                            workingdata.txtTile = reader.ReadString();
+
+                            TextBox newTextbox = new TextBox();
+                            newTextbox.Text = workingdata.txtText;
+                            newTextbox.Font = workingdata.txtFont;
+                            newTextbox.Height = workingdata.txtFont.Height;
+                            newTextbox.ForeColor = workingdata.txtColor;
+                            newTextbox.BackColor = txtText.BackColor;
+
+                            CheckBox newCheckbox = new CheckBox();
+                            newCheckbox.Checked = workingdata.bolIncrementVisible;
+
+                            PositionDisplay.addPosition(newTextbox,
+                                                        newCheckbox,
+                                                        workingdata.txtPoint,
+                                                        Convert.ToInt32(workingdata.txtRotation),
+                                                        workingdata.txtTile);
+
+                            if (panel2.Controls[panel2.Controls.Count - 1].Bottom > panel2.Height)
+                            {
+                                vScrollBar2.Enabled = true;
+                            }
                         }
                     }
                 }
@@ -2755,7 +2789,6 @@ namespace GTL_Editor
                 {
                     MessageBox.Show("Invalid file format");
                 }
-                fStream.Close();
             }
         }
         private void placeTexttoolStripButton_Click(object sender, EventArgs e)                        
