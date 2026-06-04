@@ -230,11 +230,11 @@ namespace GTL_Editor
 
                             if (((GroupBox)HostForm.Controls["groupBox2"]).Right + 6 > 486)
                             {
-                                ((Panel)HostForm.Controls["panel1"]).Left = ((GroupBox)HostForm.Controls["groupBox2"]).Right + 6;
+                                ((Form1)HostForm).SetViewportLeft(((GroupBox)HostForm.Controls["groupBox2"]).Right + 6);
                             }
                             else
                             {
-                                ((Panel)HostForm.Controls["panel1"]).Left = 486;
+                                ((Form1)HostForm).SetViewportLeft(486);
                             }
 
                             ((PictureBox)HostForm.Controls["workingFullTile"]).Image = ((gtlTileDisplay)sender).fullTile.Image;
@@ -386,11 +386,11 @@ namespace GTL_Editor
 
                             if (((GroupBox)HostForm.Controls["groupBox2"]).Right + 6 > 486)
                             {
-                                ((Panel)HostForm.Controls["panel1"]).Left = ((GroupBox)HostForm.Controls["groupBox2"]).Right + 6;
+                                ((Form1)HostForm).SetViewportLeft(((GroupBox)HostForm.Controls["groupBox2"]).Right + 6);
                             }
                             else
                             {
-                                ((Panel)HostForm.Controls["panel1"]).Left = 486;
+                                ((Form1)HostForm).SetViewportLeft(486);
                             }
 
                             ((PictureBox)HostForm.Controls["workingFullTile"]).Top = ((GroupBox)HostForm.Controls["groupBox2"]).Bottom + 20;

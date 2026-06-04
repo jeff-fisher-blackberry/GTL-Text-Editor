@@ -488,8 +488,17 @@ namespace GTL_Editor
             if (currentScroll > maxScroll) currentScroll = maxScroll;
             if (currentScroll < 0) currentScroll = 0;
 
-            vScrollBar1.Value = currentScroll;
-            panel1.Top = -currentScroll;
+        }
+
+        public void SetViewportLeft(int left)
+        {
+            if (panel1Viewport != null && vScrollBar1 != null)
+            {
+                panel1Viewport.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+                panel1Viewport.Left = left;
+                panel1Viewport.Width = vScrollBar1.Left - panel1Viewport.Left;
+                panel1Viewport.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            }
         }
 
         private void ModernizeToolbarIcons()
@@ -629,10 +638,12 @@ namespace GTL_Editor
             this.vScrollBar1.Left = this.ClientRectangle.Width - this.vScrollBar1.Width;
             this.vScrollBar1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
 
+            this.panel1Viewport.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             this.panel1Viewport.Top = this.toolStrip1.Bottom;
             this.panel1Viewport.Height = this.statusStrip1.Top - this.toolStrip1.Bottom;
-            this.panel1Viewport.Left = 760;
-            this.panel1Viewport.Width = this.vScrollBar1.Left - this.panel1Viewport.Left;
+            this.panel1Viewport.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            
+            SetViewportLeft(760);
 
             this.panel1.Top = 0;
             panelHeight = this.panel1Viewport.Height;
@@ -1544,21 +1555,13 @@ namespace GTL_Editor
                     groupBox2.Controls["workingTile"].Top = 15;
                     groupBox2.Height = groupBox2.Controls["workingTile"].Height + 22;
                 }
-            if (panel1Viewport != null && vScrollBar1 != null)
+            if (groupBox2.Right + 6 > 760)
             {
-                panel1Viewport.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-
-                if (groupBox2.Right + 6 > 760)
-                {
-                    panel1Viewport.Left = groupBox2.Right + 6;
-                }
-                else
-                {
-                    panel1Viewport.Left = 760;
-                }
-
-                panel1Viewport.Width = vScrollBar1.Left - panel1Viewport.Left;
-                panel1Viewport.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+                SetViewportLeft(groupBox2.Right + 6);
+            }
+            else
+            {
+                SetViewportLeft(760);
             }
             workingFullTile.Top = groupBox2.Bottom + 20;
             workingHalfTile.Top = workingFullTile.Bottom + 20;
