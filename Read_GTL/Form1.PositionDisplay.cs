@@ -147,23 +147,13 @@ namespace GTL_Editor
                         ((Label)HostPanel.Controls[i].Controls["lblRotation"]).Tag = i + 1;
                     }
 
-                    HostVScrollBar.Maximum = HostPanel.Controls.Count - 1;
-
-                    HostPanel.Height = HostPanel.Controls[HostPanel.Controls.Count - 1].Bottom;
-                    if (HostPanel.Height < HostVScrollBar.Height)
-                    {
-                        HostPanel.Height = HostVScrollBar.Height;
-                    }
-                    
-                    if (HostPanel.Controls[HostPanel.Controls.Count - 1].Bottom < HostVScrollBar.Height)
-                    {
-                        HostVScrollBar.Enabled = false;
-                    }
+                    ((Form1)HostForm).SyncvScrollBar2();
                 }
             }
             public void removeAllPositions()                                                          
             {
                 ((Panel)HostPanel).Controls.Clear();
+                ((Form1)HostForm).SyncvScrollBar2();
             }
             public void ClicktxtPostitionText(Object sender, System.EventArgs e)                      
             {

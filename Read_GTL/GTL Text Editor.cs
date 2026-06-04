@@ -87,6 +87,7 @@ namespace GTL_Editor
         Image RotateImage;
         string openedFile;
         int panel1Height;
+        private Panel panel1Viewport;
         string currentfilename;
         protected MruStripMenuInline mruMenu;
         static string mruRegKey = "SOFTWARE\\GTL Editor";
@@ -374,6 +375,123 @@ namespace GTL_Editor
             }
         }
 
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            SyncvScrollBar1();
+        }
+
+        private void SyncvScrollBar1()
+        {
+            if (vScrollBar1 == null || panel1 == null || panel1Viewport == null)
+            {
+                return;
+            }
+
+            int viewportHeight = panel1Viewport.Height;
+            int totalHeight = 0;
+
+            if (panel1.Controls.Count > 0)
+            {
+                totalHeight = panel1.Controls[panel1.Controls.Count - 1].Bottom;
+            }
+
+            if (totalHeight <= viewportHeight)
+            {
+                vScrollBar1.Enabled = false;
+                vScrollBar1.Value = 0;
+                vScrollBar1.Maximum = 0;
+                panel1.Top = 0;
+            }
+            else
+            {
+                vScrollBar1.Enabled = true;
+                vScrollBar1.Maximum = totalHeight;
+                vScrollBar1.LargeChange = viewportHeight;
+                vScrollBar1.SmallChange = 20;
+
+                int maxScroll = totalHeight - viewportHeight;
+                if (maxScroll < 0) maxScroll = 0;
+
+                if (vScrollBar1.Value > maxScroll)
+                {
+                    vScrollBar1.Value = maxScroll;
+                }
+
+                panel1.Top = -vScrollBar1.Value;
+            }
+        }
+
+        private void SyncvScrollBar2()
+        {
+            if (vScrollBar2 == null || panel2 == null || panel3 == null)
+            {
+                return;
+            }
+
+            int viewportHeight = panel2.Height;
+            int totalHeight = 0;
+
+            if (panel3.Controls.Count > 0)
+            {
+                totalHeight = panel3.Controls[panel3.Controls.Count - 1].Bottom;
+            }
+
+            if (totalHeight <= viewportHeight)
+            {
+                vScrollBar2.Enabled = false;
+                vScrollBar2.Value = 0;
+                vScrollBar2.Maximum = 0;
+                panel3.Top = 4;
+            }
+            else
+            {
+                vScrollBar2.Enabled = true;
+                vScrollBar2.Maximum = totalHeight;
+                vScrollBar2.LargeChange = viewportHeight;
+                vScrollBar2.SmallChange = 20;
+
+                int maxScroll = totalHeight - viewportHeight;
+                if (maxScroll < 0) maxScroll = 0;
+
+                if (vScrollBar2.Value > maxScroll)
+                {
+                    vScrollBar2.Value = maxScroll;
+                }
+
+                panel3.Top = -vScrollBar2.Value + 4;
+            }
+        }
+
+        private void ScrollToTile(int index)
+        {
+            if (vScrollBar1 == null || panel1 == null || panel1Viewport == null || index < 0 || index >= panel1.Controls.Count)
+            {
+                return;
+            }
+
+            int tileTop = panel1.Controls[index].Top;
+            int tileBottom = panel1.Controls[index].Bottom;
+            int viewportHeight = panel1Viewport.Height;
+            int currentScroll = vScrollBar1.Value;
+
+            if (tileTop < currentScroll)
+            {
+                currentScroll = tileTop;
+            }
+            else if (tileBottom > currentScroll + viewportHeight)
+            {
+                currentScroll = tileBottom - viewportHeight;
+            }
+
+            int maxScroll = vScrollBar1.Maximum - vScrollBar1.LargeChange + 1;
+            if (maxScroll < 0) maxScroll = 0;
+            if (currentScroll > maxScroll) currentScroll = maxScroll;
+            if (currentScroll < 0) currentScroll = 0;
+
+            vScrollBar1.Value = currentScroll;
+            panel1.Top = -currentScroll;
+        }
+
         private void ModernizeToolbarIcons()
         {
             toolStrip1.ImageScalingSize = new Size(48, 48);
@@ -436,6 +554,36 @@ namespace GTL_Editor
         public Form1()                                                                                 
         {
             InitializeComponent();
+
+            // Setup panel1Viewport as the scrollable container for panel1
+            panel1Viewport = new Panel();
+            panel1Viewport.Name = "panel1Viewport";
+            panel1Viewport.BackColor = Color.White;
+            panel1Viewport.Location = panel1.Location;
+            panel1Viewport.Size = panel1.Size;
+            panel1Viewport.Anchor = panel1.Anchor;
+            
+            // Remove panel1 from Form, add panel1Viewport, add panel1 to panel1Viewport
+            this.Controls.Remove(panel1);
+            this.Controls.Add(panel1Viewport);
+            panel1Viewport.Controls.Add(panel1);
+            
+            // Adjust panel1 to be the content panel inside the viewport
+            panel1.Location = new Point(0, 0);
+            panel1.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            panel1.Width = panel1Viewport.Width;
+            EnableDoubleBuffering(panel1Viewport);
+
+            // Synchronize panel2 (Stored Position Area viewport) and vScrollBar2
+            panel2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            panel2.Width = vScrollBar2.Left - panel2.Left;
+            panel2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+            panel3.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            panel3.AutoSize = false;
+            panel3.Location = new Point(0, 4);
+            panel3.Width = panel2.Width;
+
             TileDisplay = new tileDisplay(this, this.components, panel1);
             PositionDisplay = new positionDisplay(this, panel3, vScrollBar2, workingFullTile, workingHalfTile, workingTile);
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey(mruRegKey);
@@ -450,6 +598,7 @@ namespace GTL_Editor
             workingTile.MouseMove += new MouseEventHandler(workingTile_MouseMove);
             workingTile.MouseUp += new MouseEventHandler(workingTile_MouseUp);
             workingTile.MouseDoubleClick += new MouseEventHandler(workingTile_MouseDoubleClick);
+            this.Resize += new EventHandler(Form1_Resize);
         }
         //Methods
         private void Form1_Load(object sender, EventArgs e)                                            
@@ -473,9 +622,20 @@ namespace GTL_Editor
             InstalledFontCollection installedFontCollection = new InstalledFontCollection();
             fontFamilies = installedFontCollection.Families;
 
+            this.vScrollBar1.Dock = DockStyle.None;
+            this.vScrollBar1.Width = 30;
             this.vScrollBar1.Top = this.toolStrip1.Bottom;
-            this.panel1.Top = this.toolStrip1.Bottom;
-            panelHeight = this.panel1.Height;
+            this.vScrollBar1.Height = this.statusStrip1.Top - this.toolStrip1.Bottom;
+            this.vScrollBar1.Left = this.ClientRectangle.Width - this.vScrollBar1.Width;
+            this.vScrollBar1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+
+            this.panel1Viewport.Top = this.toolStrip1.Bottom;
+            this.panel1Viewport.Height = this.statusStrip1.Top - this.toolStrip1.Bottom;
+            this.panel1Viewport.Left = 760;
+            this.panel1Viewport.Width = this.vScrollBar1.Left - this.panel1Viewport.Left;
+
+            this.panel1.Top = 0;
+            panelHeight = this.panel1Viewport.Height;
 
             foreach (FontFamily fontFamily in fontFamilies)
             {
@@ -493,6 +653,8 @@ namespace GTL_Editor
             RenderRotationButtonImage(btnRotate90, "90", 90.0f);
             RenderRotationButtonImage(btnRotate180, "180", 180.0f);
             RenderRotationButtonImage(btnRotateminus90, "270", 270.0f);
+
+            SyncvScrollBar1();
 
             pctRotate.Image = imageList2.Images[1];
 
@@ -613,9 +775,8 @@ namespace GTL_Editor
                 this.vScrollText.Maximum = workingFullTile.Width;
                 this.hScrollText.Maximum = workingFullTile.Height;
                 
-                this.vScrollBar1.Maximum = panel1.Controls.Count - 1;
                 this.vScrollBar1.Value = 0;
-                this.panel1.Top = -TileDisplay[vScrollBar1.Value].Top + this.toolStrip1.Bottom;
+                SyncvScrollBar1();
 
                 UpdateWorkingTileGraphics(workingTile.Image);
 
@@ -764,11 +925,17 @@ namespace GTL_Editor
         {
             try
             {
-                this.panel1.Top = -TileDisplay[vScrollBar1.Value].Top + this.toolStrip1.Bottom;
+                int val = vScrollBar1.Value;
+                int maxScroll = vScrollBar1.Maximum - vScrollBar1.LargeChange + 1;
+                if (maxScroll < 0) maxScroll = 0;
+                if (val > maxScroll) val = maxScroll;
+                if (val < 0) val = 0;
+                vScrollBar1.Value = val;
+
+                this.panel1.Top = -val;
             }
             catch
             {
-
             }
         }
         private void openToolStripButton_Click(object sender, EventArgs e)                             
@@ -1377,21 +1544,21 @@ namespace GTL_Editor
                     groupBox2.Controls["workingTile"].Top = 15;
                     groupBox2.Height = groupBox2.Controls["workingTile"].Height + 22;
                 }
-            if (panel1 != null && vScrollBar1 != null)
+            if (panel1Viewport != null && vScrollBar1 != null)
             {
-                panel1.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+                panel1Viewport.Anchor = AnchorStyles.Top | AnchorStyles.Left;
 
                 if (groupBox2.Right + 6 > 760)
                 {
-                    panel1.Left = groupBox2.Right + 6;
+                    panel1Viewport.Left = groupBox2.Right + 6;
                 }
                 else
                 {
-                    panel1.Left = 760;
+                    panel1Viewport.Left = 760;
                 }
 
-                panel1.Width = vScrollBar1.Left - panel1.Left;
-                panel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+                panel1Viewport.Width = vScrollBar1.Left - panel1Viewport.Left;
+                panel1Viewport.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             }
             workingFullTile.Top = groupBox2.Bottom + 20;
             workingHalfTile.Top = workingFullTile.Bottom + 20;
@@ -1624,17 +1791,13 @@ namespace GTL_Editor
                     int tempHeight;
                     tempHeight = panel1.Controls[panel1.Controls.Count - 1].Bottom;
                     if (tempHeight > panel1Height)
-                    {
                         panel1.Height = panel1.Controls[panel1.Controls.Count - 1].Bottom;
-                    }
                     else
                     {
                         panel1.Height = panel1Height;
-                        panel1.Top = toolStrip1.Bottom;
-                        vScrollBar1.Enabled = false;
                     }
 
-                    this.vScrollBar1.Maximum = panel1.Controls.Count - 1;
+                    SyncvScrollBar1();
 
                     if (TileDisplay.CurrentTile > 0)
                     {
@@ -1665,11 +1828,7 @@ namespace GTL_Editor
                             currenttile = i;
                         }
                     }
-                    if (panel1.Bottom < toolStrip1.Bottom)
-                    {
-                        panel1.Top = toolStrip1.Bottom - panel1.Controls[currenttile].Top;
-                        vScrollBar1.Value = currenttile;
-                    }
+                    ScrollToTile(currenttile);
 
                     workingTile.Image = ((PictureBox)((gtlTileDisplay)panel1.Controls[TileDisplay.CurrentTile]).Controls[2]).Image;
                     workingTile.Width = ((PictureBox)((gtlTileDisplay)panel1.Controls[TileDisplay.CurrentTile]).Controls[2]).Width;
@@ -1879,11 +2038,9 @@ namespace GTL_Editor
                     else
                     {
                         panel1.Height = panel1Height;
-                        panel1.Top = toolStrip1.Bottom;
-                        vScrollBar1.Enabled = false;
                     }
 
-                    this.vScrollBar1.Maximum = panel1.Controls.Count - 1;
+                    SyncvScrollBar1();
 
                     if (TileDisplay.CurrentTile > 0)
                     {
@@ -1914,11 +2071,7 @@ namespace GTL_Editor
                             currenttile = i;
                         }
                     }
-                    if (panel1.Bottom < toolStrip1.Bottom)
-                    {
-                        panel1.Top = toolStrip1.Bottom - panel1.Controls[currenttile].Top;
-                        vScrollBar1.Value = currenttile;
-                    }
+                    ScrollToTile(currenttile);
 
                     workingTile.Image = ((PictureBox)((gtlTileDisplay)panel1.Controls[TileDisplay.CurrentTile]).Controls[2]).Image;
                     workingTile.Width = ((PictureBox)((gtlTileDisplay)panel1.Controls[TileDisplay.CurrentTile]).Controls[2]).Width;
@@ -2024,11 +2177,7 @@ namespace GTL_Editor
 
                         chkIncrement.Checked = false;
 
-                        if (panel3.Bottom > panel2.Height)
-                        {
-                            vScrollBar2.Enabled = true;
-                            vScrollBar2.Maximum = panel3.Controls.Count - 1;
-                        }
+                        SyncvScrollBar2();
                     }
                 }
                 else
@@ -2045,11 +2194,7 @@ namespace GTL_Editor
 
                     chkIncrement.Checked = false;
 
-                    if (panel3.Bottom > panel2.Height)
-                    {
-                        vScrollBar2.Enabled = true;
-                        vScrollBar2.Maximum = panel3.Controls.Count - 1;
-                    }
+                    SyncvScrollBar2();
                 }
             }
             workingTile.Focus();
@@ -2178,7 +2323,7 @@ namespace GTL_Editor
             newTile.SmallTile = workingSmallTile.BackColor;
 
             TileDisplay.AddTile(newTile);
-            this.vScrollBar1.Maximum = panel1.Controls.Count - 1;
+            SyncvScrollBar1();
             if (TileDisplay.Count > 1)
                 deletetoolStripButton1.Enabled = true;
             lblCurrentWorkingTile.Text = "FullTile";
@@ -2400,7 +2545,7 @@ namespace GTL_Editor
                 newTile.HalfTile = (Bitmap)workingHalfTile.Image;
                 newTile.SmallTile = workingSmallTile.BackColor;
                 TileDisplay.AddTile(newTile);
-                this.vScrollBar1.Maximum = panel1.Controls.Count - 1;
+                SyncvScrollBar1();
                 if (TileDisplay.Count > 1)
                 {
                     deleteTileToolStripMenuItem.Enabled = true;
@@ -2523,7 +2668,7 @@ namespace GTL_Editor
                 newTile.SmallTile = workingSmallTile.BackColor;
 
                 TileDisplay.AddTile(newTile);
-                this.vScrollBar1.Maximum = panel1.Controls.Count - 1;
+                SyncvScrollBar1();
                 if (TileDisplay.Count > 1)
                 {
                     deleteTileToolStripMenuItem.Enabled = true;
@@ -2756,11 +2901,17 @@ namespace GTL_Editor
         {
             try
             {
-                this.panel3.Top = -PositionDisplay[vScrollBar2.Value].Top;
+                int val = vScrollBar2.Value;
+                int maxScroll = vScrollBar2.Maximum - vScrollBar2.LargeChange + 1;
+                if (maxScroll < 0) maxScroll = 0;
+                if (val > maxScroll) val = maxScroll;
+                if (val < 0) val = 0;
+                vScrollBar2.Value = val;
+
+                this.panel3.Top = -val + 4;
             }
             catch
             {
-
             }
         }
         private void btnGradient_Click(object sender, EventArgs e)                                     
@@ -2934,8 +3085,8 @@ namespace GTL_Editor
                 txtText.Font = this.Font;
                 txtText.ForeColor = Color.Black;
                 txtText.BackColor = workingSmallTile.BackColor;
-                vScrollBar1.Minimum = -5;
-                vScrollBar1.Maximum = workingTile.Height;
+                vScrollText.Minimum = -5;
+                vScrollText.Maximum = workingTile.Height;
                 hScrollText.Minimum = -5;
                 hScrollText.Maximum = workingTile.Width;
                 vScrollText.Value = 0;
@@ -4032,11 +4183,7 @@ namespace GTL_Editor
 
                         chkIncrement.Checked = false;
 
-                        if (panel3.Bottom > panel2.Height)
-                        {
-                            vScrollBar2.Enabled = true;
-                            vScrollBar2.Maximum = panel3.Controls.Count - 1;
-                        }
+                        SyncvScrollBar2();
                     }
                 }
                 else
@@ -4053,11 +4200,7 @@ namespace GTL_Editor
 
                     chkIncrement.Checked = false;
 
-                    if (panel3.Bottom > panel2.Height)
-                    {
-                        vScrollBar2.Enabled = true;
-                        vScrollBar2.Maximum = panel3.Controls.Count - 1;
-                    }
+                    SyncvScrollBar2();
                 }
             }
             workingTile.Focus();
@@ -4078,7 +4221,7 @@ namespace GTL_Editor
                 newTile.HalfTile = (Bitmap)workingHalfTile.Image;
                 newTile.SmallTile = workingSmallTile.BackColor;
                 TileDisplay.AddTile(newTile);
-                this.vScrollBar1.Maximum = panel1.Controls.Count - 1;
+                SyncvScrollBar1();
                 if (TileDisplay.Count > 1)
                 {
                     deleteTileToolStripMenuItem.Enabled = true;
