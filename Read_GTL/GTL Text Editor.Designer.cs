@@ -41,7 +41,7 @@ namespace GTL_Editor
             this.openPositiontoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.savePositiontoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator9 = new System.Windows.Forms.ToolStripSeparator();
-            this.createBMPtoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.closeFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createPNGtoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator12 = new System.Windows.Forms.ToolStripSeparator();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -66,7 +66,6 @@ namespace GTL_Editor
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contentstoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.HowtotoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.WhatsThistoolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator14 = new System.Windows.Forms.ToolStripSeparator();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
@@ -85,8 +84,6 @@ namespace GTL_Editor
             this.copyToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.pasteToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.WhatsThistoolStripButton = new System.Windows.Forms.ToolStripButton();
-            this.toolStripSeparator6 = new System.Windows.Forms.ToolStripSeparator();
             this.toolFontSelectButton = new System.Windows.Forms.ToolStripButton();
             this.fontColortoolStripButton1 = new System.Windows.Forms.ToolStripButton();
             this.toolFontIncreaseButton = new System.Windows.Forms.ToolStripButton();
@@ -225,13 +222,13 @@ namespace GTL_Editor
             this.openToolStripMenuItem,
             this.saveToolStripMenuItem,
             this.saveAsToolStripMenuItem,
+            this.closeFileToolStripMenuItem,
             this.toolStripMenuItem1,
             this.MRUToolStripMenuItem,
             this.toolStripMenuItem2,
             this.openPositiontoolStripMenuItem,
             this.savePositiontoolStripMenuItem,
             this.toolStripSeparator9,
-            this.createBMPtoolStripMenuItem,
             this.createPNGtoolStripMenuItem,
             this.toolStripSeparator12,
             this.exitToolStripMenuItem});
@@ -272,6 +269,14 @@ namespace GTL_Editor
             this.saveAsToolStripMenuItem.Text = "Save as...";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
             // 
+            // closeFileToolStripMenuItem
+            // 
+            this.closeFileToolStripMenuItem.Enabled = false;
+            this.closeFileToolStripMenuItem.Name = "closeFileToolStripMenuItem";
+            this.closeFileToolStripMenuItem.Size = new System.Drawing.Size(191, 22);
+            this.closeFileToolStripMenuItem.Text = "Close File";
+            this.closeFileToolStripMenuItem.Click += new System.EventHandler(this.closeFileToolStripMenuItem_Click);
+            // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
@@ -308,14 +313,6 @@ namespace GTL_Editor
             // 
             this.toolStripSeparator9.Name = "toolStripSeparator9";
             this.toolStripSeparator9.Size = new System.Drawing.Size(188, 6);
-            // 
-            // createBMPtoolStripMenuItem
-            // 
-            this.createBMPtoolStripMenuItem.Enabled = false;
-            this.createBMPtoolStripMenuItem.Name = "createBMPtoolStripMenuItem";
-            this.createBMPtoolStripMenuItem.Size = new System.Drawing.Size(191, 22);
-            this.createBMPtoolStripMenuItem.Text = "Create BMP files";
-            this.createBMPtoolStripMenuItem.Click += new System.EventHandler(this.createBMPtoolStripMenuItem_Click);
             // 
             // createPNGtoolStripMenuItem
             // 
@@ -529,7 +526,6 @@ namespace GTL_Editor
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.contentstoolStripMenuItem,
             this.HowtotoolStripMenuItem,
-            this.WhatsThistoolStripMenuItem,
             this.toolStripSeparator14,
             this.aboutToolStripMenuItem});
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
@@ -555,16 +551,6 @@ namespace GTL_Editor
             this.HowtotoolStripMenuItem.Size = new System.Drawing.Size(175, 22);
             this.HowtotoolStripMenuItem.Text = "How to...";
             this.HowtotoolStripMenuItem.Click += new System.EventHandler(this.HowtotoolStripMenuItem_Click);
-            // 
-            // WhatsThistoolStripMenuItem
-            // 
-            this.WhatsThistoolStripMenuItem.Enabled = false;
-            this.WhatsThistoolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("WhatsThistoolStripMenuItem.Image")));
-            this.WhatsThistoolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Fuchsia;
-            this.WhatsThistoolStripMenuItem.Name = "WhatsThistoolStripMenuItem";
-            this.WhatsThistoolStripMenuItem.Size = new System.Drawing.Size(175, 22);
-            this.WhatsThistoolStripMenuItem.Text = "What\'s this?";
-            this.WhatsThistoolStripMenuItem.Click += new System.EventHandler(this.WhatsThistoolStripMenuItem_Click);
             // 
             // toolStripSeparator14
             // 
@@ -651,8 +637,6 @@ namespace GTL_Editor
             this.copyToolStripButton,
             this.pasteToolStripButton,
             this.toolStripSeparator1,
-            this.WhatsThistoolStripButton,
-            this.toolStripSeparator6,
             this.toolFontSelectButton,
             this.fontColortoolStripButton1,
             this.toolFontIncreaseButton,
@@ -743,23 +727,6 @@ namespace GTL_Editor
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
-            // 
-            // WhatsThistoolStripButton
-            // 
-            this.WhatsThistoolStripButton.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.WhatsThistoolStripButton.Enabled = false;
-            this.WhatsThistoolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("WhatsThistoolStripButton.Image")));
-            this.WhatsThistoolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.WhatsThistoolStripButton.Name = "WhatsThistoolStripButton";
-            this.WhatsThistoolStripButton.Size = new System.Drawing.Size(23, 22);
-            this.WhatsThistoolStripButton.Text = "toolStripButton1";
-            this.WhatsThistoolStripButton.ToolTipText = "What\'s this?";
-            this.WhatsThistoolStripButton.Click += new System.EventHandler(this.WhatsThistoolStripButton_Click);
-            // 
-            // toolStripSeparator6
-            // 
-            this.toolStripSeparator6.Name = "toolStripSeparator6";
-            this.toolStripSeparator6.Size = new System.Drawing.Size(6, 25);
             // 
             // toolFontSelectButton
             // 
@@ -1109,7 +1076,7 @@ namespace GTL_Editor
             this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.panel1.BackColor = System.Drawing.Color.White;
+            this.panel1.BackColor = System.Drawing.SystemColors.Control;
             this.helpProvider1.SetHelpKeyword(this.panel1, "GTL File Area");
             this.helpProvider1.SetHelpNavigator(this.panel1, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.panel1, "GTL File Area");
@@ -1172,15 +1139,14 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpKeyword(this.btnReplace, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnReplace, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.btnReplace, "Text Area");
-            this.btnReplace.ImageKey = "(none)";
-            this.btnReplace.ImageList = this.imageList1;
             this.btnReplace.Location = new System.Drawing.Point(259, 155);
             this.btnReplace.Margin = new System.Windows.Forms.Padding(1);
             this.btnReplace.Name = "btnReplace";
             this.helpProvider1.SetShowHelp(this.btnReplace, true);
-            this.btnReplace.Size = new System.Drawing.Size(65, 26);
+            this.btnReplace.Size = new System.Drawing.Size(82, 28);
             this.btnReplace.TabIndex = 26;
             this.btnReplace.Text = "Replace";
+            this.btnReplace.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.toolTip1.SetToolTip(this.btnReplace, "Place text onto working tile");
             this.btnReplace.UseVisualStyleBackColor = true;
             this.btnReplace.Click += new System.EventHandler(this.btnReplace_Click);
@@ -1216,10 +1182,10 @@ namespace GTL_Editor
             this.btnReset.Margin = new System.Windows.Forms.Padding(1);
             this.btnReset.Name = "btnReset";
             this.helpProvider1.SetShowHelp(this.btnReset, true);
-            this.btnReset.Size = new System.Drawing.Size(65, 27);
+            this.btnReset.Size = new System.Drawing.Size(74, 28);
             this.btnReset.TabIndex = 25;
             this.btnReset.Text = "Reset";
-            this.btnReset.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.btnReset.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.toolTip1.SetToolTip(this.btnReset, "Reset All Text Settings");
             this.btnReset.UseVisualStyleBackColor = true;
             this.btnReset.Click += new System.EventHandler(this.btnReset_Click);
@@ -1474,7 +1440,7 @@ namespace GTL_Editor
             this.btnRotate90.Margin = new System.Windows.Forms.Padding(4);
             this.btnRotate90.Name = "btnRotate90";
             this.helpProvider1.SetShowHelp(this.btnRotate90, true);
-            this.btnRotate90.Size = new System.Drawing.Size(27, 44);
+            this.btnRotate90.Size = new System.Drawing.Size(34, 46);
             this.btnRotate90.TabIndex = 14;
             this.toolTip1.SetToolTip(this.btnRotate90, "Rotation Preset");
             this.btnRotate90.UseVisualStyleBackColor = true;
@@ -1490,7 +1456,7 @@ namespace GTL_Editor
             this.btnRotate180.Margin = new System.Windows.Forms.Padding(4);
             this.btnRotate180.Name = "btnRotate180";
             this.helpProvider1.SetShowHelp(this.btnRotate180, true);
-            this.btnRotate180.Size = new System.Drawing.Size(48, 25);
+            this.btnRotate180.Size = new System.Drawing.Size(54, 28);
             this.btnRotate180.TabIndex = 13;
             this.toolTip1.SetToolTip(this.btnRotate180, "Rotation Preset");
             this.btnRotate180.UseVisualStyleBackColor = true;
@@ -1506,7 +1472,7 @@ namespace GTL_Editor
             this.btnRotateminus90.Margin = new System.Windows.Forms.Padding(4);
             this.btnRotateminus90.Name = "btnRotateminus90";
             this.helpProvider1.SetShowHelp(this.btnRotateminus90, true);
-            this.btnRotateminus90.Size = new System.Drawing.Size(27, 44);
+            this.btnRotateminus90.Size = new System.Drawing.Size(34, 46);
             this.btnRotateminus90.TabIndex = 12;
             this.toolTip1.SetToolTip(this.btnRotateminus90, "Rotation Preset");
             this.btnRotateminus90.UseVisualStyleBackColor = true;
@@ -1522,7 +1488,7 @@ namespace GTL_Editor
             this.btnRotate0.Margin = new System.Windows.Forms.Padding(4);
             this.btnRotate0.Name = "btnRotate0";
             this.helpProvider1.SetShowHelp(this.btnRotate0, true);
-            this.btnRotate0.Size = new System.Drawing.Size(48, 25);
+            this.btnRotate0.Size = new System.Drawing.Size(54, 28);
             this.btnRotate0.TabIndex = 11;
             this.toolTip1.SetToolTip(this.btnRotate0, "Rotation Preset");
             this.btnRotate0.UseVisualStyleBackColor = true;
@@ -1587,15 +1553,14 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpKeyword(this.btnPlace, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnPlace, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.btnPlace, "Text Area");
-            this.btnPlace.ImageKey = "(none)";
-            this.btnPlace.ImageList = this.imageList1;
             this.btnPlace.Location = new System.Drawing.Point(117, 155);
             this.btnPlace.Margin = new System.Windows.Forms.Padding(1);
             this.btnPlace.Name = "btnPlace";
             this.helpProvider1.SetShowHelp(this.btnPlace, true);
-            this.btnPlace.Size = new System.Drawing.Size(65, 26);
+            this.btnPlace.Size = new System.Drawing.Size(82, 28);
             this.btnPlace.TabIndex = 7;
             this.btnPlace.Text = "Place";
+            this.btnPlace.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.toolTip1.SetToolTip(this.btnPlace, "Place text onto working tile");
             this.btnPlace.UseVisualStyleBackColor = true;
             this.btnPlace.Click += new System.EventHandler(this.btnPlace_Click);
@@ -1942,15 +1907,14 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpKeyword(this.btnClear, "Tile Area");
             this.helpProvider1.SetHelpNavigator(this.btnClear, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.btnClear, "");
-            this.btnClear.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnClear.ImageList = this.imageList3;
             this.btnClear.Location = new System.Drawing.Point(264, 87);
             this.btnClear.Margin = new System.Windows.Forms.Padding(4);
             this.btnClear.Name = "btnClear";
             this.helpProvider1.SetShowHelp(this.btnClear, true);
-            this.btnClear.Size = new System.Drawing.Size(65, 26);
+            this.btnClear.Size = new System.Drawing.Size(74, 28);
             this.btnClear.TabIndex = 47;
             this.btnClear.Text = "Clear";
+            this.btnClear.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.btnClear.UseVisualStyleBackColor = true;
             this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
             // 
@@ -1974,15 +1938,14 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpKeyword(this.btnResize, "Tile Area");
             this.helpProvider1.SetHelpNavigator(this.btnResize, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.btnResize, "Tile Area");
-            this.btnResize.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnResize.ImageList = this.imageList3;
             this.btnResize.Location = new System.Drawing.Point(118, 50);
             this.btnResize.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnResize.Name = "btnResize";
             this.helpProvider1.SetShowHelp(this.btnResize, true);
-            this.btnResize.Size = new System.Drawing.Size(65, 26);
+            this.btnResize.Size = new System.Drawing.Size(82, 28);
             this.btnResize.TabIndex = 44;
             this.btnResize.Text = "Resize";
+            this.btnResize.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.btnResize.UseVisualStyleBackColor = true;
             this.btnResize.Click += new System.EventHandler(this.btnResize_Click2);
             // 
@@ -1991,15 +1954,14 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpKeyword(this.btnStretch, "Tile Area");
             this.helpProvider1.SetHelpNavigator(this.btnStretch, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.btnStretch, "Tile Area");
-            this.btnStretch.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnStretch.ImageList = this.imageList3;
             this.btnStretch.Location = new System.Drawing.Point(45, 50);
             this.btnStretch.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnStretch.Name = "btnStretch";
             this.helpProvider1.SetShowHelp(this.btnStretch, true);
-            this.btnStretch.Size = new System.Drawing.Size(65, 26);
+            this.btnStretch.Size = new System.Drawing.Size(82, 28);
             this.btnStretch.TabIndex = 43;
             this.btnStretch.Text = "Stretch";
+            this.btnStretch.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.btnStretch.UseVisualStyleBackColor = true;
             this.btnStretch.Click += new System.EventHandler(this.btnStretch_Click);
             // 
@@ -2123,15 +2085,14 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpKeyword(this.btnCorners, "Tile Area");
             this.helpProvider1.SetHelpNavigator(this.btnCorners, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.btnCorners, "");
-            this.btnCorners.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnCorners.ImageList = this.imageList3;
             this.btnCorners.Location = new System.Drawing.Point(264, 51);
             this.btnCorners.Margin = new System.Windows.Forms.Padding(4);
             this.btnCorners.Name = "btnCorners";
             this.helpProvider1.SetShowHelp(this.btnCorners, true);
-            this.btnCorners.Size = new System.Drawing.Size(65, 26);
+            this.btnCorners.Size = new System.Drawing.Size(74, 28);
             this.btnCorners.TabIndex = 30;
             this.btnCorners.Text = "Clip";
+            this.btnCorners.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.btnCorners.UseVisualStyleBackColor = true;
             this.btnCorners.Click += new System.EventHandler(this.btnCorners_Click);
             // 
@@ -2140,15 +2101,14 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpKeyword(this.btnGradient, "Tile Area");
             this.helpProvider1.SetHelpNavigator(this.btnGradient, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.btnGradient, "");
-            this.btnGradient.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            this.btnGradient.ImageList = this.imageList3;
             this.btnGradient.Location = new System.Drawing.Point(264, 16);
             this.btnGradient.Margin = new System.Windows.Forms.Padding(4);
             this.btnGradient.Name = "btnGradient";
             this.helpProvider1.SetShowHelp(this.btnGradient, true);
-            this.btnGradient.Size = new System.Drawing.Size(65, 26);
+            this.btnGradient.Size = new System.Drawing.Size(74, 28);
             this.btnGradient.TabIndex = 29;
             this.btnGradient.Text = "Bevel";
+            this.btnGradient.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.btnGradient.UseVisualStyleBackColor = true;
             this.btnGradient.Click += new System.EventHandler(this.btnGradient_Click);
             // 
@@ -2368,7 +2328,7 @@ namespace GTL_Editor
         private System.Windows.Forms.ToolStripButton createTiletoolStripButton;
         private System.Windows.Forms.ToolStripButton createFromPositiontoolStripButton;
         private System.Windows.Forms.ToolStripButton replaceTooltoolStripButton1;
-        private System.Windows.Forms.ToolStripMenuItem createBMPtoolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem closeFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator12;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.Button btnAlignCenter;
@@ -2412,9 +2372,6 @@ namespace GTL_Editor
         private System.Windows.Forms.ErrorProvider errorProvider1;
         private System.Windows.Forms.ImageList imageList4;
         private System.Windows.Forms.HelpProvider helpProvider1;
-        private System.Windows.Forms.ToolStripMenuItem WhatsThistoolStripMenuItem;
-        private System.Windows.Forms.ToolStripButton WhatsThistoolStripButton;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator6;
         private System.Windows.Forms.ToolStripMenuItem HowtotoolStripMenuItem;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.PictureBox pctTransparentColor;
