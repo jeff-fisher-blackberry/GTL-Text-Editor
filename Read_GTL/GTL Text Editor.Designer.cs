@@ -540,7 +540,7 @@ namespace GTL_Editor
             this.contentstoolStripMenuItem.Name = "contentstoolStripMenuItem";
             this.contentstoolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F1;
             this.contentstoolStripMenuItem.Size = new System.Drawing.Size(175, 22);
-            this.contentstoolStripMenuItem.Text = "GTL Editor &Help";
+            this.contentstoolStripMenuItem.Text = "GTL Text Editor &Help";
             this.contentstoolStripMenuItem.Visible = false;
             this.contentstoolStripMenuItem.Click += new System.EventHandler(this.contentstoolStripMenuItem_Click);
             // 
@@ -566,7 +566,7 @@ namespace GTL_Editor
             this.aboutToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(175, 22);
-            this.aboutToolStripMenuItem.Text = "About GTL Editor...";
+            this.aboutToolStripMenuItem.Text = "About GTL Text Editor...";
             this.aboutToolStripMenuItem.Click += new System.EventHandler(this.aboutToolStripMenuItem_Click);
             // 
             // openFileDialog1
@@ -2204,7 +2204,7 @@ namespace GTL_Editor
             this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "Form1";
             this.helpProvider1.SetShowHelp(this, true);
-            this.Text = "GTL Editor";
+            this.Text = "GTL Text Editor";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.Form1_Load);
             this.menuStrip1.ResumeLayout(false);

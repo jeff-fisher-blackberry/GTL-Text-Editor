@@ -1,4 +1,4 @@
-# AGENT.md — GTL Text Editor (GTL Editor)
+# AGENT.md — GTL Text Editor
 
 ## Project Overview
 - **Application:** GTL Text Editor (`GTL Editor.sln`, `Read_GTL`)
@@ -47,3 +47,10 @@
 - **File Isolation:** Keep binary serialization logic strictly inside `GTL_File.cs` and data transfer schemas inside `PositionDataDto`; do not leak raw stream parsing into WinForms event handlers.
 - **WinForms Designer Safety:** Do not manually rewrite `*.Designer.cs` layout code unless specifically instructed; keep business and rendering logic in the main code-behind files.
 - **Verification:** Before concluding changes, verify that the solution builds cleanly (`dotnet build` or MSBuild on `GTL Editor.sln`) with zero new compiler warnings and confirm no unintended changes were made to `.gtl` binary read/write paths.
+
+---
+
+## Release & Installer Packaging Guidelines
+- **Incrementing Version Policy:** Whenever an `.msi` installer is built or published, its version number must increment cleanly on each release across `AssemblyInfo.cs`, `About.cs`, and `Package.wxs`.
+- **MSI Naming Convention:** The installer output filename in `GTLEditorInstaller.wixproj` must strictly follow the `GTL Text Editor-<version>.msi` naming convention (e.g., `GTL Text Editor-1.11.msi`), without superfluous `.0.0` extensions.
+- **Git Hygiene:** Build artifacts (`bin/`, `obj/`, `.vs/`, `*.user`) and `.msi` binary installer packages must remain in `.gitignore` and never be committed into regular Git branch history.

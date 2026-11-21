@@ -1,6 +1,6 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
-  <Package Name="GTL Editor"
+  <Package Name="GTL Text Editor"
            Manufacturer="Cyberboard Tools"
            Version="1.11.0.0"
            UpgradeCode="6A9568C1-4370-46D2-8B34-103989D0FD7A"
@@ -13,22 +13,22 @@
     <Property Id="ARPPRODUCTICON" Value="AppIcon" />
 
     <StandardDirectory Id="ProgramFiles64Folder">
-      <Directory Id="INSTALLFOLDER" Name="GTL Editor">
+      <Directory Id="INSTALLFOLDER" Name="GTL Text Editor">
         <Directory Id="ResourcesFolder" Name="Resources" />
       </Directory>
     </StandardDirectory>
 
     <StandardDirectory Id="ProgramMenuFolder">
-      <Directory Id="ApplicationProgramsFolder" Name="GTL Editor">
+      <Directory Id="ApplicationProgramsFolder" Name="GTL Text Editor">
         <Component Id="ApplicationShortcut" Guid="B4A5405A-6170-4D52-BBE3-7A3E9FE6D695">
           <Shortcut Id="ApplicationStartMenuShortcut"
-                    Name="GTL Editor"
+                    Name="GTL Text Editor"
                     Description="Cyberboard GTL Text Editor"
                     Target="[!GTLEditorExe]"
                     WorkingDirectory="INSTALLFOLDER"
                     Icon="AppIcon" />
           <RemoveFolder Id="CleanUpProgramMenuFolder" Directory="ApplicationProgramsFolder" On="uninstall" />
-          <RegistryValue Root="HKCU" Key="Software\Cyberboard Tools\GTL Editor" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+          <RegistryValue Root="HKCU" Key="Software\Cyberboard Tools\GTL Text Editor" Name="installed" Type="integer" Value="1" KeyPath="yes" />
         </Component>
       </Directory>
     </StandardDirectory>
@@ -36,30 +36,30 @@
     <StandardDirectory Id="DesktopFolder">
       <Component Id="ApplicationDesktopShortcut" Guid="9872C5DA-880A-4E38-B549-F2E3106C88D4">
         <Shortcut Id="ApplicationDesktopShortcut"
-                  Name="GTL Editor"
+                  Name="GTL Text Editor"
                   Description="Cyberboard GTL Text Editor"
                   Target="[!GTLEditorExe]"
                   WorkingDirectory="INSTALLFOLDER"
                   Icon="AppIcon" />
-        <RegistryValue Root="HKCU" Key="Software\Cyberboard Tools\GTL Editor" Name="desktopShortcut" Type="integer" Value="1" KeyPath="yes" />
+        <RegistryValue Root="HKCU" Key="Software\Cyberboard Tools\GTL Text Editor" Name="desktopShortcut" Type="integer" Value="1" KeyPath="yes" />
       </Component>
     </StandardDirectory>
 
     <ComponentGroup Id="AppComponents" Directory="INSTALLFOLDER">
       <Component Id="GTLEditorExeComp" Guid="7242137D-010C-4318-8A8E-2B6A31D0FD6C">
-        <File Id="GTLEditorExe" Source="..\Read_GTL\bin\Release\net9.0-windows\publish\GTL Editor.exe" KeyPath="yes" />
+        <File Id="GTLEditorExe" Source="..\Read_GTL\bin\Release\net9.0-windows\publish\GTL Text Editor.exe" KeyPath="yes" />
       </Component>
       <Component Id="GTLEditorDllComp" Guid="B66A457D-A08C-4949-9D8B-B034E5716DE2">
-        <File Source="..\Read_GTL\bin\Release\net9.0-windows\publish\GTL Editor.dll" />
+        <File Source="..\Read_GTL\bin\Release\net9.0-windows\publish\GTL Text Editor.dll" />
       </Component>
       <Component Id="GTLEditorDepsComp" Guid="A7678B7D-0A7B-463E-A5FD-5460F25A0F3D">
-        <File Source="..\Read_GTL\bin\Release\net9.0-windows\publish\GTL Editor.deps.json" />
+        <File Source="..\Read_GTL\bin\Release\net9.0-windows\publish\GTL Text Editor.deps.json" />
       </Component>
       <Component Id="GTLEditorRuntimeConfigComp" Guid="520743B8-8D29-4509-9FF3-C5A2FFB685AE">
-        <File Source="..\Read_GTL\bin\Release\net9.0-windows\publish\GTL Editor.runtimeconfig.json" />
+        <File Source="..\Read_GTL\bin\Release\net9.0-windows\publish\GTL Text Editor.runtimeconfig.json" />
       </Component>
       <Component Id="GTLEditorConfigComp" Guid="B442654D-973A-4D46-A223-FF6CD1BFEC42">
-        <File Source="..\Read_GTL\bin\Release\net9.0-windows\publish\GTL Editor.dll.config" />
+        <File Source="..\Read_GTL\bin\Release\net9.0-windows\publish\GTL Text Editor.dll.config" />
       </Component>
       <Component Id="GtlDisplayControlComp" Guid="EF034871-A3C9-4C82-9BE3-4E832049DA4C">
         <File Source="..\Read_GTL\bin\Release\net9.0-windows\publish\gtlDisplayControl.dll" />
@@ -84,7 +84,7 @@
       </Component>
     </ComponentGroup>
 
-    <Feature Id="MainFeature" Title="GTL Editor" Level="1">
+    <Feature Id="MainFeature" Title="GTL Text Editor" Level="1">
       <ComponentGroupRef Id="AppComponents" />
       <ComponentGroupRef Id="ResourceComponents" />
       <ComponentRef Id="ApplicationShortcut" />

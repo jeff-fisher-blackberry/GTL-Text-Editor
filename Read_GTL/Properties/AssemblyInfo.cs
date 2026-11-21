@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("GTL Editor")]
-[assembly: AssemblyDescription("GTL Editor can be used to edit GTL files created using Dale L. Larson's Cyberboard Designer.")]
+[assembly: AssemblyTitle("GTL Text Editor")]
+[assembly: AssemblyDescription("GTL Text Editor can be used to edit GTL files created using Dale L. Larson's Cyberboard Designer.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Cyberboard Tools")]
-[assembly: AssemblyProduct("GTL Editor")]
+[assembly: AssemblyProduct("GTL Text Editor")]
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

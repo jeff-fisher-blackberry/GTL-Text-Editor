@@ -2125,7 +2125,7 @@ namespace GTL_Editor
             InitializeTileUndoRedoButtons();
             InitializeTextWorkingAreaSymbols();
 
-            // Temporarily hide first two Help menu items and separator above About GTL Editor
+            // Temporarily hide first two Help menu items and separator above About GTL Text Editor
             contentstoolStripMenuItem.Visible = false;
             HowtotoolStripMenuItem.Visible = false;
             toolStripSeparator14.Visible = false;
@@ -2283,7 +2283,7 @@ namespace GTL_Editor
             //gtlFile.ReadFile(openFileDialog1.FileName);
             gtlFile.ReadFile(filename);
 
-            this.Text = "GTL Editor";
+            this.Text = "GTL Text Editor";
 
             currentWorkingTile = (int)currentworkingtile.FullTile;
             Application.DoEvents();
@@ -2295,7 +2295,7 @@ namespace GTL_Editor
                 workingTile.Top = Convert.ToInt32((groupBox2.ClientSize.Height * 0.5) - (workingTile.Height * 0.5));
                 workingTile.Left = Convert.ToInt32((groupBox2.ClientSize.Width * 0.5) - (workingTile.Width * 0.5));
 
-                this.Text = "GTL Editor - [" + Path.GetFileName(filename) + "]";
+                this.Text = "GTL Text Editor - [" + Path.GetFileName(filename) + "]";
 
                 workingFullTile.Top = groupBox2.Bottom + 20;
                 workingFullTile.Height = gtlFile.Tile[0].FullTile.Height;
@@ -3269,7 +3269,7 @@ namespace GTL_Editor
             if (saveFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 gtlFile.WriteFile(saveFileDialog1.FileName, panel1);
-                this.Text = "GTL Editor - [" + Path.GetFileName(saveFileDialog1.FileName) + "]";
+                this.Text = "GTL Text Editor - [" + Path.GetFileName(saveFileDialog1.FileName) + "]";
 
                 mruMenu.AddFile(saveFileDialog1.FileName);
                 mruMenu.SaveToRegistry();
@@ -4384,7 +4384,7 @@ namespace GTL_Editor
         {
             currentfilename = "";
             openedFile = "";
-            this.Text = "GTL Editor";
+            this.Text = "GTL Text Editor";
             gtlFile = new GTL_File();
 
             UpdateWorkingTileGraphics(null);
