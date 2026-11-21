@@ -52,5 +52,5 @@
 
 ## Release & Installer Packaging Guidelines
 - **Incrementing Version Policy:** Whenever an `.msi` installer is built or published, its version number must increment cleanly on each release across `AssemblyInfo.cs`, `About.cs`, and `Package.wxs`.
-- **MSI Naming Convention:** The installer output filename in `GTLEditorInstaller.wixproj` must strictly follow the `GTL Text Editor - <version>.msi` naming convention (e.g., `GTL Text Editor - 1.9.msi`), without superfluous `.0.0` extensions.
+- **MSI Naming Convention:** The installer output filename in `GTLEditorInstaller.wixproj` must strictly follow the `GTL Editor-<version>.msi` naming convention (e.g., `GTL Editor-1.11.msi`), without superfluous `.0.0` extensions.
 - **Git Hygiene:** Build artifacts (`bin/`, `obj/`, `.vs/`, `*.user`) and `.msi` binary installer packages must remain in `.gitignore` and never be committed into regular Git branch history.

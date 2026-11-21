@@ -953,6 +953,258 @@ namespace GTL_Editor
             cbo.Enter += (s, e) => clearSel();
         }
 
+        #region Tile Working Area Undo / Redo System
+
+        private sealed class TileSnapshot : IDisposable
+        {
+            public Bitmap Bitmap { get; private set; }
+            public int Width { get; }
+            public int Height { get; }
+            public Color TransparentColor { get; }
+
+            public TileSnapshot(Image sourceImage, int width, int height, Color transparentColor)
+            {
+                if (sourceImage != null)
+                {
+                    this.Bitmap = new Bitmap(sourceImage);
+                }
+                this.Width = width;
+                this.Height = height;
+                this.TransparentColor = transparentColor;
+            }
+
+            public void Dispose()
+            {
+                Bitmap?.Dispose();
+                Bitmap = null;
+            }
+        }
+
+        private Button btnTileUndo;
+        private Button btnTileRedo;
+        private readonly List<TileSnapshot> tileHistory = new List<TileSnapshot>();
+        private int tileHistoryIndex = -1;
+        private bool isApplyingTileSnapshot = false;
+
+        private Bitmap GetTileUndoGlyph(int size, Color color)
+        {
+            return GetModernGlyph("\uE7A7", size, color);
+        }
+
+        private Bitmap GetTileRedoGlyph(int size, Color color)
+        {
+            return GetModernGlyph("\uE7A6", size, color);
+        }
+
+        private void InitializeTileUndoRedoButtons()
+        {
+            if (groupBox3 == null) return;
+
+            btnTileUndo = new Button
+            {
+                Name = "btnTileUndo",
+                Size = new Size(26, 26),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.White,
+                Cursor = Cursors.Default,
+                Enabled = false,
+                TabStop = false
+            };
+            btnTileUndo.FlatAppearance.BorderSize = 1;
+            btnTileUndo.FlatAppearance.BorderColor = Color.FromArgb(195, 200, 208);
+            btnTileUndo.Click += (s, e) => UndoTileAction();
+
+            btnTileRedo = new Button
+            {
+                Name = "btnTileRedo",
+                Size = new Size(26, 26),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = Color.White,
+                Cursor = Cursors.Default,
+                Enabled = false,
+                TabStop = false
+            };
+            btnTileRedo.FlatAppearance.BorderSize = 1;
+            btnTileRedo.FlatAppearance.BorderColor = Color.FromArgb(195, 200, 208);
+            btnTileRedo.Click += (s, e) => RedoTileAction();
+
+            if (toolTip1 != null)
+            {
+                toolTip1.SetToolTip(btnTileUndo, "Undo Tile Action");
+                toolTip1.SetToolTip(btnTileRedo, "Redo Tile Action");
+            }
+
+            groupBox3.Controls.Add(btnTileUndo);
+            groupBox3.Controls.Add(btnTileRedo);
+
+            UpdateTileUndoRedoButtons();
+        }
+
+        private void UpdateTileUndoRedoButtons()
+        {
+            if (btnTileUndo == null || btnTileRedo == null) return;
+
+            bool canUndo = (tileHistory != null && tileHistoryIndex > 0);
+            bool canRedo = (tileHistory != null && tileHistoryIndex >= 0 && tileHistoryIndex < tileHistory.Count - 1);
+
+            btnTileUndo.Enabled = canUndo;
+            btnTileRedo.Enabled = canRedo;
+
+            btnTileUndo.Cursor = canUndo ? Cursors.Hand : Cursors.Default;
+            btnTileRedo.Cursor = canRedo ? Cursors.Hand : Cursors.Default;
+
+            Color enabledColor = Color.FromArgb(40, 44, 52);
+            Color disabledColor = Color.FromArgb(170, 175, 185);
+
+            btnTileUndo.Image?.Dispose();
+            btnTileUndo.Image = GetTileUndoGlyph(18, canUndo ? enabledColor : disabledColor);
+
+            btnTileRedo.Image?.Dispose();
+            btnTileRedo.Image = GetTileRedoGlyph(18, canRedo ? enabledColor : disabledColor);
+        }
+
+        private void PushTileActionSnapshot()
+        {
+            if (isApplyingTileSnapshot || workingTile?.Image == null) return;
+
+            int w = workingTile.Width;
+            int h = workingTile.Height;
+            if (int.TryParse(txtWidth.Text, out int tw) && tw > 0) w = tw;
+            if (int.TryParse(txtHeight.Text, out int th) && th > 0) h = th;
+
+            // If history is uninitialized, record initial state as baseline first
+            if (tileHistory.Count == 0 || tileHistoryIndex < 0)
+            {
+                tileHistory.Add(new TileSnapshot(workingTile.Image, w, h, pctTransparentColor.BackColor));
+                tileHistoryIndex = 0;
+            }
+
+            // Prune any redo branch ahead of current index
+            for (int i = tileHistory.Count - 1; i > tileHistoryIndex; i--)
+            {
+                tileHistory[i].Dispose();
+                tileHistory.RemoveAt(i);
+            }
+
+            tileHistory.Add(new TileSnapshot(workingTile.Image, w, h, pctTransparentColor.BackColor));
+            tileHistoryIndex = tileHistory.Count - 1;
+
+            // Cap depth to 50 snapshots
+            while (tileHistory.Count > 50)
+            {
+                tileHistory[0].Dispose();
+                tileHistory.RemoveAt(0);
+                tileHistoryIndex--;
+            }
+
+            UpdateTileUndoRedoButtons();
+        }
+
+        public void ResetTileHistory()
+        {
+            if (workingTile?.Image == null)
+            {
+                ClearTileHistory();
+                return;
+            }
+
+            ClearTileHistory();
+
+            int w = workingTile.Width;
+            int h = workingTile.Height;
+            if (int.TryParse(txtWidth.Text, out int tw) && tw > 0) w = tw;
+            if (int.TryParse(txtHeight.Text, out int th) && th > 0) h = th;
+
+            tileHistory.Add(new TileSnapshot(workingTile.Image, w, h, pctTransparentColor.BackColor));
+            tileHistoryIndex = 0;
+            UpdateTileUndoRedoButtons();
+        }
+
+        public void ClearTileHistory()
+        {
+            if (tileHistory != null)
+            {
+                foreach (var snap in tileHistory)
+                {
+                    snap.Dispose();
+                }
+                tileHistory.Clear();
+            }
+            tileHistoryIndex = -1;
+            UpdateTileUndoRedoButtons();
+        }
+
+        public void MarkTileHistorySavedState()
+        {
+            if (tileHistory == null || tileHistoryIndex < 0) return;
+
+            // Discard any history prior to current saved state so undo cannot regress past save boundary
+            for (int i = 0; i < tileHistoryIndex; i++)
+            {
+                tileHistory[0].Dispose();
+                tileHistory.RemoveAt(0);
+            }
+            tileHistoryIndex = 0;
+            UpdateTileUndoRedoButtons();
+        }
+
+        private void UndoTileAction()
+        {
+            if (tileHistoryIndex > 0)
+            {
+                tileHistoryIndex--;
+                ApplyTileSnapshot(tileHistory[tileHistoryIndex]);
+                UpdateTileUndoRedoButtons();
+            }
+        }
+
+        private void RedoTileAction()
+        {
+            if (tileHistory != null && tileHistoryIndex >= 0 && tileHistoryIndex < tileHistory.Count - 1)
+            {
+                tileHistoryIndex++;
+                ApplyTileSnapshot(tileHistory[tileHistoryIndex]);
+                UpdateTileUndoRedoButtons();
+            }
+        }
+
+        private void ApplyTileSnapshot(TileSnapshot snapshot)
+        {
+            if (snapshot == null || snapshot.Bitmap == null || workingTile == null) return;
+
+            isApplyingTileSnapshot = true;
+            try
+            {
+                Bitmap newWorkingImage = new Bitmap(snapshot.Bitmap);
+                workingTile.Image = newWorkingImage;
+                workingTile.Width = snapshot.Width;
+                workingTile.Height = snapshot.Height;
+
+                txtWidth.Text = snapshot.Width.ToString();
+                txtHeight.Text = snapshot.Height.ToString();
+                lblTileSize.Text = $"{snapshot.Width},{snapshot.Height}";
+
+                pctTransparentColor.BackColor = snapshot.TransparentColor;
+
+                UpdateWorkingTileGraphics(workingTile.Image);
+                centerWorkingTile();
+                resizeWorkingArea();
+                workingTile.Invalidate();
+                workingTile.Update();
+
+                if (pctZoom != null && pctZoom.Visible)
+                {
+                    paintZoom();
+                }
+            }
+            finally
+            {
+                isApplyingTileSnapshot = false;
+            }
+        }
+
+        #endregion
+
         private void LayoutTileWorkingArea()
         {
             if (groupBox3 == null || txtWidth == null || label1 == null || txtHeight == null ||
@@ -1028,6 +1280,18 @@ namespace GTL_Editor
             txtHeight.Location = new Point(label1.Right + 5, row1Y);
             txtHeight.Size = new Size(52, 26);
 
+            if (btnTileUndo != null)
+            {
+                btnTileUndo.Location = new Point(txtHeight.Right + 6, row1Y);
+                btnTileUndo.Size = new Size(26, 26);
+            }
+
+            if (btnTileRedo != null)
+            {
+                btnTileRedo.Location = new Point((btnTileUndo != null ? btnTileUndo.Right : txtHeight.Right) + 4, row1Y);
+                btnTileRedo.Size = new Size(26, 26);
+            }
+
             cboCornerSize.Location = new Point(rightDropdownX, row1Y + 1);
             cboCornerSize.Size = new Size(rightDropdownWidth, 26);
 
@@ -1066,6 +1330,80 @@ namespace GTL_Editor
             cboClear.SelectionLength = 0;
         }
 
+        private static Bitmap CreateTextWorkingAreaSymbol(int size, Action<Graphics, SolidBrush> drawAction)
+        {
+            Bitmap bmp = new Bitmap(size, size);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.Transparent);
+                using (SolidBrush b = new SolidBrush(Color.FromArgb(40, 44, 52)))
+                {
+                    drawAction(g, b);
+                }
+            }
+            return bmp;
+        }
+
+        private void InitializeTextWorkingAreaSymbols()
+        {
+            if (imageList4 == null) return;
+
+            int iconSize = 16;
+            imageList4.Images.Clear();
+            imageList4.ImageSize = new Size(iconSize, iconSize);
+            imageList4.ColorDepth = ColorDepth.Depth32Bit;
+
+            // Index 0: TopLeft (Align Left)
+            using (var b0 = CreateTextWorkingAreaSymbol(iconSize, (g, b) => { g.FillRectangle(b, 3, 2, 2, 12); g.FillRectangle(b, 3, 2, 9, 2); }))
+            {
+                imageList4.Images.Add(b0);
+            }
+            // Index 1: Center (Align Center)
+            using (var b1 = CreateTextWorkingAreaSymbol(iconSize, (g, b) => { g.FillRectangle(b, 2, 2, 12, 2); g.FillRectangle(b, 7, 2, 2, 12); }))
+            {
+                imageList4.Images.Add(b1);
+            }
+            // Index 2: TopRight (Align Right)
+            using (var b2 = CreateTextWorkingAreaSymbol(iconSize, (g, b) => { g.FillRectangle(b, 4, 2, 9, 2); g.FillRectangle(b, 11, 2, 2, 12); }))
+            {
+                imageList4.Images.Add(b2);
+            }
+            // Index 3: AlignTop (Align Top)
+            using (var b3 = CreateTextWorkingAreaSymbol(iconSize, (g, b) => { g.FillRectangle(b, 2, 2, 12, 2); g.FillRectangle(b, 3, 2, 2, 7); }))
+            {
+                imageList4.Images.Add(b3);
+            }
+            // Index 4: Middle (Align Middle)
+            using (var b4 = CreateTextWorkingAreaSymbol(iconSize, (g, b) => { g.FillRectangle(b, 3, 2, 2, 12); g.FillRectangle(b, 2, 7, 12, 2); }))
+            {
+                imageList4.Images.Add(b4);
+            }
+            // Index 5: Bottom (Align Bottom)
+            using (var b5 = CreateTextWorkingAreaSymbol(iconSize, (g, b) => { g.FillRectangle(b, 2, 12, 12, 2); g.FillRectangle(b, 3, 7, 2, 7); }))
+            {
+                imageList4.Images.Add(b5);
+            }
+            // Index 6: Plus (Expand Range)
+            using (var b6 = CreateTextWorkingAreaSymbol(iconSize, (g, b) => { g.FillRectangle(b, 7, 2, 2, 12); g.FillRectangle(b, 2, 7, 12, 2); }))
+            {
+                imageList4.Images.Add(b6);
+            }
+            // Index 7: Minus (Compress Range)
+            using (var b7 = CreateTextWorkingAreaSymbol(iconSize, (g, b) => { g.FillRectangle(b, 2, 7, 12, 2); }))
+            {
+                imageList4.Images.Add(b7);
+            }
+
+            if (btnAlignLeft != null) { btnAlignLeft.ImageList = imageList4; btnAlignLeft.ImageIndex = 0; }
+            if (btnAlignCenter != null) { btnAlignCenter.ImageList = imageList4; btnAlignCenter.ImageIndex = 1; }
+            if (btnAlignRights != null) { btnAlignRights.ImageList = imageList4; btnAlignRights.ImageIndex = 2; }
+            if (btnAlignTop != null) { btnAlignTop.ImageList = imageList4; btnAlignTop.ImageIndex = 3; }
+            if (btnAlignMiddle != null) { btnAlignMiddle.ImageList = imageList4; btnAlignMiddle.ImageIndex = 4; }
+            if (btnAlignBottom != null) { btnAlignBottom.ImageList = imageList4; btnAlignBottom.ImageIndex = 5; }
+            if (btnExtendRange != null) { btnExtendRange.ImageList = imageList4; btnExtendRange.ImageIndex = 6; }
+            if (btnReduceRange != null) { btnReduceRange.ImageList = imageList4; btnReduceRange.ImageIndex = 7; }
+        }
+
         private void LayoutTextWorkingArea()
         {
             if (groupBox1 == null || btnReset == null || btnAlignLeft == null || btnAlignCenter == null ||
@@ -1096,6 +1434,16 @@ namespace GTL_Editor
             btnPlace.Font = btnFont;
             btnStore.Font = btnFont;
             btnReplace.Font = btnFont;
+
+            Font symbolBtnFont = new Font(this.Font.FontFamily, 9.75f, FontStyle.Bold);
+            btnAlignLeft.Font = symbolBtnFont;
+            btnAlignCenter.Font = symbolBtnFont;
+            btnAlignRights.Font = symbolBtnFont;
+            btnExtendRange.Font = symbolBtnFont;
+            btnAlignTop.Font = symbolBtnFont;
+            btnAlignMiddle.Font = symbolBtnFont;
+            btnAlignBottom.Font = symbolBtnFont;
+            btnReduceRange.Font = symbolBtnFont;
 
             int buttonHeight = 32;
 
@@ -1233,7 +1581,7 @@ namespace GTL_Editor
         private Button btnTabTile;
         private Button btnTabTileText;
         private Button btnTabPositions;
-        private LeftPanelTab currentLeftTab = LeftPanelTab.Text;
+        private LeftPanelTab currentLeftTab = LeftPanelTab.Tile;
 
         public void SelectLeftTab(LeftPanelTab tab)
         {
@@ -1367,7 +1715,7 @@ namespace GTL_Editor
                 panel3.ControlRemoved += (s, e) => UpdateStoredPositionsTabBadge();
             }
 
-            SelectLeftTab(LeftPanelTab.Text);
+            SelectLeftTab(LeftPanelTab.Tile);
         }
 
         private void LayoutMainFormContainers()
@@ -1393,6 +1741,7 @@ namespace GTL_Editor
             groupBox3.Location = new Point(7, contentTop);
             groupBox3.Width = 390;
             groupBox3.Height = 156;
+            LayoutTileWorkingArea();
 
             // GroupBox1: Text Tools (natural height 536, fits completely in availableHeight ~570px)
             groupBox1.Location = new Point(7, contentTop);
@@ -1754,6 +2103,14 @@ namespace GTL_Editor
             panel3.Location = new Point(0, 4);
             panel3.Width = panel2.ClientSize.Width;
 
+            EnableDoubleBuffering(this);
+            EnableDoubleBuffering(groupBox1);
+            EnableDoubleBuffering(groupBox2);
+            EnableDoubleBuffering(groupBox3);
+            EnableDoubleBuffering(groupBox4);
+            panel1.ControlAdded += (s, e) => EnableDoubleBuffering(e.Control);
+            panel3.ControlAdded += (s, e) => EnableDoubleBuffering(e.Control);
+
             TileDisplay = new tileDisplay(this, this.components, panel1);
             PositionDisplay = new positionDisplay(this, panel3, vScrollBar2, workingFullTile, workingHalfTile, workingTile);
             RegistryKey regKey = Registry.CurrentUser.OpenSubKey(mruRegKey);
@@ -1765,6 +2122,27 @@ namespace GTL_Editor
             
             ApplyHigherContrastBorders();
             InitializeLeftPanelTabs();
+            InitializeTileUndoRedoButtons();
+            InitializeTextWorkingAreaSymbols();
+
+            // Temporarily hide first two Help menu items and separator above About GTL Editor
+            contentstoolStripMenuItem.Visible = false;
+            HowtotoolStripMenuItem.Visible = false;
+            toolStripSeparator14.Visible = false;
+
+            panel1.ControlAdded += (s, e) =>
+            {
+                if (e.Control is gtlTileDisplay gtd)
+                {
+                    gtd.Click += (ts, ta) => this.BeginInvoke(new Action(ResetTileHistory));
+                    if (gtd.fullTile != null)
+                        gtd.fullTile.Click += (ts, ta) => this.BeginInvoke(new Action(ResetTileHistory));
+                    if (gtd.halfTile != null)
+                        gtd.halfTile.Click += (ts, ta) => this.BeginInvoke(new Action(ResetTileHistory));
+                    if (gtd.smallTile != null)
+                        gtd.smallTile.Click += (ts, ta) => this.BeginInvoke(new Action(ResetTileHistory));
+                }
+            };
             
             // Programmatically bind canvas interaction events
             workingTile.MouseDown += new MouseEventHandler(workingTile_MouseDown);
@@ -1780,9 +2158,14 @@ namespace GTL_Editor
         //Methods
         private void Form1_Load(object sender, EventArgs e)                                            
         {
+            EnableDoubleBuffering(this);
             EnableDoubleBuffering(panel1);
             EnableDoubleBuffering(panel2);
             EnableDoubleBuffering(panel3);
+            EnableDoubleBuffering(groupBox1);
+            EnableDoubleBuffering(groupBox2);
+            EnableDoubleBuffering(groupBox3);
+            EnableDoubleBuffering(groupBox4);
             EnableDoubleBuffering(workingTile);
 
             ApplyToolbarResolutionProfile();
@@ -2066,9 +2449,11 @@ namespace GTL_Editor
                 this.workingFullTile.Visible = true;
                 this.workingHalfTile.Visible = true;
                 this.workingSmallTile.Visible = true;
+                ResetTileHistory();
             }
             catch
             {
+                ClearTileHistory();
                 panel1.Controls.Clear();
                 UpdateTilePanelBackground();
 
@@ -2111,7 +2496,7 @@ namespace GTL_Editor
                 if (maxScroll < 0) maxScroll = 0;
                 if (val > maxScroll) val = maxScroll;
                 if (val < 0) val = 0;
-                vScrollBar1.Value = val;
+                if (vScrollBar1.Value != val) vScrollBar1.Value = val;
 
                 this.panel1.Top = -val;
             }
@@ -2890,6 +3275,7 @@ namespace GTL_Editor
                 mruMenu.SaveToRegistry();
 
                 currentfilename = saveFileDialog1.FileName;
+                MarkTileHistorySavedState();
             }
             
         }
@@ -2916,6 +3302,7 @@ namespace GTL_Editor
         private void saveGTLFile()                                                                     
         {
             gtlFile.WriteFile(openedFile, panel1);
+            MarkTileHistorySavedState();
         }
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)                           
         {
@@ -4346,7 +4733,7 @@ namespace GTL_Editor
                 if (maxScroll < 0) maxScroll = 0;
                 if (val > maxScroll) val = maxScroll;
                 if (val < 0) val = 0;
-                vScrollBar2.Value = val;
+                if (vScrollBar2.Value != val) vScrollBar2.Value = val;
 
                 this.panel3.Top = -val + 4;
             }
@@ -4437,6 +4824,7 @@ namespace GTL_Editor
             workingTile.Image = workerTile;
             workingTile.Invalidate();
             workingTile.Update();
+            PushTileActionSnapshot();
         }
         private void btnCorners_Click(object sender, EventArgs e)                                      
         {
@@ -4504,6 +4892,7 @@ namespace GTL_Editor
             workingTile.Image = workerTile;
             workingTile.Invalidate();
             workingTile.Update();
+            PushTileActionSnapshot();
         }
         private void btnReset_Click(object sender, EventArgs e)                                        
         {
@@ -4886,9 +5275,12 @@ namespace GTL_Editor
                         else
                         {
                             Color grabColor = new Color();
-                            Bitmap grabBitmap = (Bitmap)workingTile.Image.Clone();
-                            grabColor = grabBitmap.GetPixel(e.X, e.Y);
+                            using (Bitmap grabBitmap = (Bitmap)workingTile.Image.Clone())
+                            {
+                                grabColor = grabBitmap.GetPixel(e.X, e.Y);
+                            }
                             pctTransparentColor.BackColor = grabColor;
+                            PushTileActionSnapshot();
                         }
                     }
                     this.Cursor = Cursors.Default;
@@ -4938,6 +5330,7 @@ namespace GTL_Editor
                 if (pctZoom.Visible)
                     paintZoom();
                 workingTile.Focus();
+                PushTileActionSnapshot();
             }
         }
         private void btnResize_Click2(object sender, EventArgs e)                                      
@@ -5046,6 +5439,7 @@ namespace GTL_Editor
                     if (pctZoom.Visible)
                         paintZoom();
                 }
+                PushTileActionSnapshot();
                 this.Cursor = Cursors.Default;
             }
         }
@@ -5096,6 +5490,7 @@ namespace GTL_Editor
                 workingTile.Focus();
                 if (pctZoom.Visible)
                     paintZoom();
+                PushTileActionSnapshot();
             }
         }
         private void txtWidth_Validating(object sender, CancelEventArgs e)                             
@@ -5113,6 +5508,14 @@ namespace GTL_Editor
             errorProvider1.SetError(txtWidth, "");
             Single ratio = Convert.ToSingle(txtWidth.Text) / workingTile.Width;
             txtHeight.Text = Convert.ToInt16(workingTile.Height * ratio).ToString();
+            if (!isApplyingTileSnapshot && tileHistoryIndex >= 0 && tileHistoryIndex < tileHistory.Count)
+            {
+                if (txtWidth.Text != tileHistory[tileHistoryIndex].Width.ToString() ||
+                    txtHeight.Text != tileHistory[tileHistoryIndex].Height.ToString())
+                {
+                    PushTileActionSnapshot();
+                }
+            }
         }
         private void txtHeight_Validating(object sender, CancelEventArgs e)                            
         {
@@ -5129,6 +5532,14 @@ namespace GTL_Editor
             errorProvider1.SetError(txtHeight, "");
             Single ratio = Convert.ToSingle(txtHeight.Text) / workingTile.Height;
             txtWidth.Text = Convert.ToInt16(workingTile.Width * ratio).ToString();
+            if (!isApplyingTileSnapshot && tileHistoryIndex >= 0 && tileHistoryIndex < tileHistory.Count)
+            {
+                if (txtWidth.Text != tileHistory[tileHistoryIndex].Width.ToString() ||
+                    txtHeight.Text != tileHistory[tileHistoryIndex].Height.ToString())
+                {
+                    PushTileActionSnapshot();
+                }
+            }
         }
         private Boolean ValidNumber(string txtNumber, out string errorMessage)                         
         {
@@ -5366,7 +5777,10 @@ namespace GTL_Editor
                 else
                 {
                     if (colorDialog1.ShowDialog() == DialogResult.OK)
+                    {
                         pctTransparentColor.BackColor = colorDialog1.Color;
+                        PushTileActionSnapshot();
+                    }
                 }
             }
         }
@@ -5867,14 +6281,19 @@ namespace GTL_Editor
 
         protected override void WndProc(ref Message m)
         {
-            base.WndProc(ref m);
+            const int WM_ERASEBKGND = 0x0014;
             const int WM_PAINT = 0x000F;
-            const int WM_MOUSEMOVE = 0x0200;
-            const int WM_LBUTTONDOWN = 0x0201;
-            const int WM_LBUTTONUP = 0x0202;
             const int WM_VSCROLL = 0x0115;
 
-            if (m.Msg == WM_PAINT || m.Msg == WM_MOUSEMOVE || m.Msg == WM_LBUTTONDOWN || m.Msg == WM_LBUTTONUP || m.Msg == WM_VSCROLL)
+            if (m.Msg == WM_ERASEBKGND)
+            {
+                m.Result = (IntPtr)1;
+                return;
+            }
+
+            base.WndProc(ref m);
+
+            if (m.Msg == WM_PAINT || m.Msg == WM_VSCROLL)
             {
                 CustomPaint();
             }
@@ -5884,112 +6303,126 @@ namespace GTL_Editor
         {
             if (Width <= 0 || Height <= 0 || !IsHandleCreated) return;
 
-            using (Graphics g = Graphics.FromHwnd(Handle))
+            try
             {
-                g.SmoothingMode = SmoothingMode.AntiAlias;
-                g.PixelOffsetMode = PixelOffsetMode.Half;
-
-                Rectangle client = ClientRectangle;
-
-                // 1. Distinct track fill
-                Color trackColor = Enabled ? Color.FromArgb(232, 235, 239) : Color.FromArgb(245, 245, 247);
-                using (SolidBrush trackBrush = new SolidBrush(trackColor))
+                using (Bitmap buffer = new Bitmap(Width, Height))
                 {
-                    g.FillRectangle(trackBrush, client);
-                }
-
-                // 2. Arrow buttons
-                int arrowSize = Math.Min(Width, 22);
-                Rectangle topArrowRect = new Rectangle(0, 0, Width, arrowSize);
-                Rectangle bottomArrowRect = new Rectangle(0, Height - arrowSize, Width, arrowSize);
-
-                Color arrowBg = Enabled ? (isHovered ? Color.FromArgb(218, 223, 230) : Color.FromArgb(226, 230, 236)) : Color.FromArgb(245, 245, 247);
-                using (SolidBrush abBrush = new SolidBrush(arrowBg))
-                {
-                    g.FillRectangle(abBrush, topArrowRect);
-                    g.FillRectangle(abBrush, bottomArrowRect);
-                }
-
-                // Arrow glyphs
-                Color glyphColor = Enabled ? Color.FromArgb(50, 54, 62) : Color.FromArgb(170, 175, 182);
-                using (SolidBrush glyphBrush = new SolidBrush(glyphColor))
-                {
-                    float cx = Width / 2f;
-                    float tMargin = arrowSize * 0.32f;
-                    PointF[] topArrow = new PointF[]
+                    using (Graphics g = Graphics.FromImage(buffer))
                     {
-                        new PointF(cx, tMargin),
-                        new PointF(cx - (arrowSize * 0.28f), arrowSize - tMargin),
-                        new PointF(cx + (arrowSize * 0.28f), arrowSize - tMargin)
-                    };
-                    g.FillPolygon(glyphBrush, topArrow);
+                        g.SmoothingMode = SmoothingMode.AntiAlias;
+                        g.PixelOffsetMode = PixelOffsetMode.Half;
 
-                    float bTop = bottomArrowRect.Top;
-                    PointF[] bottomArrow = new PointF[]
-                    {
-                        new PointF(cx, bTop + arrowSize - tMargin),
-                        new PointF(cx - (arrowSize * 0.28f), bTop + tMargin),
-                        new PointF(cx + (arrowSize * 0.28f), bTop + tMargin)
-                    };
-                    g.FillPolygon(glyphBrush, bottomArrow);
-                }
+                        Rectangle client = ClientRectangle;
 
-                // 3. High-contrast Thumb
-                if (Enabled)
-                {
-                    int trackHeight = Height - (2 * arrowSize);
-                    int range = Maximum - Minimum;
-                    if (range > 0 && trackHeight > 0)
-                    {
-                        int minThumb = Math.Min(26, trackHeight);
-                        int thumbHeight = Math.Max(minThumb, (int)((float)LargeChange / (range + LargeChange) * trackHeight));
-                        if (thumbHeight > trackHeight) thumbHeight = trackHeight;
-
-                        int availableTrack = trackHeight - thumbHeight;
-                        int effectiveMax = Math.Max(1, range - LargeChange + 1);
-                        int valClamped = Math.Max(Minimum, Math.Min(effectiveMax + Minimum, Value));
-                        int thumbY = topArrowRect.Bottom + (int)((float)(valClamped - Minimum) / effectiveMax * availableTrack);
-
-                        if (thumbY + thumbHeight > bottomArrowRect.Top) thumbY = bottomArrowRect.Top - thumbHeight;
-                        if (thumbY < topArrowRect.Bottom) thumbY = topArrowRect.Bottom;
-
-                        Rectangle thumbRect = new Rectangle(2, thumbY, Width - 4, thumbHeight);
-                        Color thumbColor = isDragging ? Color.FromArgb(42, 48, 58) : (isHovered ? Color.FromArgb(68, 76, 90) : Color.FromArgb(92, 100, 114));
-
-                        using (SolidBrush thumbBrush = new SolidBrush(thumbColor))
+                        // 1. Distinct track fill
+                        Color trackColor = Enabled ? Color.FromArgb(232, 235, 239) : Color.FromArgb(245, 245, 247);
+                        using (SolidBrush trackBrush = new SolidBrush(trackColor))
                         {
-                            g.FillRectangle(thumbBrush, thumbRect);
+                            g.FillRectangle(trackBrush, client);
                         }
 
-                        // Subtle dark border on thumb
-                        using (Pen thumbBorderPen = new Pen(Color.FromArgb(40, 46, 56), 1f))
+                        // 2. Arrow buttons
+                        int arrowSize = Math.Min(Width, 22);
+                        Rectangle topArrowRect = new Rectangle(0, 0, Width, arrowSize);
+                        Rectangle bottomArrowRect = new Rectangle(0, Height - arrowSize, Width, arrowSize);
+
+                        Color arrowBg = Enabled ? (isHovered ? Color.FromArgb(218, 223, 230) : Color.FromArgb(226, 230, 236)) : Color.FromArgb(245, 245, 247);
+                        using (SolidBrush abBrush = new SolidBrush(arrowBg))
                         {
-                            g.DrawRectangle(thumbBorderPen, thumbRect);
+                            g.FillRectangle(abBrush, topArrowRect);
+                            g.FillRectangle(abBrush, bottomArrowRect);
                         }
 
-                        // Thumb center grip marks (3 horizontal lines)
-                        if (thumbHeight >= 20)
+                        // Arrow glyphs
+                        Color glyphColor = Enabled ? Color.FromArgb(50, 54, 62) : Color.FromArgb(170, 175, 182);
+                        using (SolidBrush glyphBrush = new SolidBrush(glyphColor))
                         {
-                            using (Pen gripPen = new Pen(Color.FromArgb(218, 224, 234), 1f))
+                            float cx = Width / 2f;
+                            float tMargin = arrowSize * 0.32f;
+                            PointF[] topArrow = new PointF[]
                             {
-                                int midY = thumbRect.Top + thumbRect.Height / 2;
-                                int gripW = Math.Max(6, thumbRect.Width - 8);
-                                int gripX = thumbRect.Left + (thumbRect.Width - gripW) / 2;
-                                g.DrawLine(gripPen, gripX, midY - 3, gripX + gripW, midY - 3);
-                                g.DrawLine(gripPen, gripX, midY, gripX + gripW, midY);
-                                g.DrawLine(gripPen, gripX, midY + 3, gripX + gripW, midY + 3);
+                                new PointF(cx, tMargin),
+                                new PointF(cx - (arrowSize * 0.28f), arrowSize - tMargin),
+                                new PointF(cx + (arrowSize * 0.28f), arrowSize - tMargin)
+                            };
+                            g.FillPolygon(glyphBrush, topArrow);
+
+                            float bTop = bottomArrowRect.Top;
+                            PointF[] bottomArrow = new PointF[]
+                            {
+                                new PointF(cx, bTop + arrowSize - tMargin),
+                                new PointF(cx - (arrowSize * 0.28f), bTop + tMargin),
+                                new PointF(cx + (arrowSize * 0.28f), bTop + tMargin)
+                            };
+                            g.FillPolygon(glyphBrush, bottomArrow);
+                        }
+
+                        // 3. High-contrast Thumb
+                        if (Enabled)
+                        {
+                            int trackHeight = Height - (2 * arrowSize);
+                            int range = Maximum - Minimum;
+                            if (range > 0 && trackHeight > 0)
+                            {
+                                int minThumb = Math.Min(26, trackHeight);
+                                int thumbHeight = Math.Max(minThumb, (int)((float)LargeChange / (range + LargeChange) * trackHeight));
+                                if (thumbHeight > trackHeight) thumbHeight = trackHeight;
+
+                                int availableTrack = trackHeight - thumbHeight;
+                                int effectiveMax = Math.Max(1, range - LargeChange + 1);
+                                int valClamped = Math.Max(Minimum, Math.Min(effectiveMax + Minimum, Value));
+                                int thumbY = topArrowRect.Bottom + (int)((float)(valClamped - Minimum) / effectiveMax * availableTrack);
+
+                                if (thumbY + thumbHeight > bottomArrowRect.Top) thumbY = bottomArrowRect.Top - thumbHeight;
+                                if (thumbY < topArrowRect.Bottom) thumbY = topArrowRect.Bottom;
+
+                                Rectangle thumbRect = new Rectangle(2, thumbY, Width - 4, thumbHeight);
+                                Color thumbColor = isDragging ? Color.FromArgb(42, 48, 58) : (isHovered ? Color.FromArgb(68, 76, 90) : Color.FromArgb(92, 100, 114));
+
+                                using (SolidBrush thumbBrush = new SolidBrush(thumbColor))
+                                {
+                                    g.FillRectangle(thumbBrush, thumbRect);
+                                }
+
+                                // Subtle dark border on thumb
+                                using (Pen thumbBorderPen = new Pen(Color.FromArgb(40, 46, 56), 1f))
+                                {
+                                    g.DrawRectangle(thumbBorderPen, thumbRect);
+                                }
+
+                                // Thumb center grip marks (3 horizontal lines)
+                                if (thumbHeight >= 20)
+                                {
+                                    using (Pen gripPen = new Pen(Color.FromArgb(218, 224, 234), 1f))
+                                    {
+                                        int midY = thumbRect.Top + thumbRect.Height / 2;
+                                        int gripW = Math.Max(6, thumbRect.Width - 8);
+                                        int gripX = thumbRect.Left + (thumbRect.Width - gripW) / 2;
+                                        g.DrawLine(gripPen, gripX, midY - 3, gripX + gripW, midY - 3);
+                                        g.DrawLine(gripPen, gripX, midY, gripX + gripW, midY);
+                                        g.DrawLine(gripPen, gripX, midY + 3, gripX + gripW, midY + 3);
+                                    }
+                                }
                             }
                         }
+
+                        // 4. Clear outer border & arrow dividers
+                        using (Pen borderPen = new Pen(Color.FromArgb(135, 142, 153), 1))
+                        {
+                            g.DrawRectangle(borderPen, 0, 0, Width - 1, Height - 1);
+                            g.DrawLine(borderPen, 0, topArrowRect.Bottom, Width - 1, topArrowRect.Bottom);
+                            g.DrawLine(borderPen, 0, bottomArrowRect.Top, Width - 1, bottomArrowRect.Top);
+                        }
+                    }
+
+                    using (Graphics gScreen = Graphics.FromHwnd(Handle))
+                    {
+                        gScreen.DrawImageUnscaled(buffer, 0, 0);
                     }
                 }
-
-                // 4. Clear outer border & arrow dividers
-                using (Pen borderPen = new Pen(Color.FromArgb(135, 142, 153), 1))
-                {
-                    g.DrawRectangle(borderPen, 0, 0, Width - 1, Height - 1);
-                    g.DrawLine(borderPen, 0, topArrowRect.Bottom, Width - 1, topArrowRect.Bottom);
-                    g.DrawLine(borderPen, 0, bottomArrowRect.Top, Width - 1, bottomArrowRect.Top);
-                }
+            }
+            catch
+            {
             }
         }
     }
@@ -6059,14 +6492,19 @@ namespace GTL_Editor
 
         protected override void WndProc(ref Message m)
         {
-            base.WndProc(ref m);
+            const int WM_ERASEBKGND = 0x0014;
             const int WM_PAINT = 0x000F;
-            const int WM_MOUSEMOVE = 0x0200;
-            const int WM_LBUTTONDOWN = 0x0201;
-            const int WM_LBUTTONUP = 0x0202;
             const int WM_HSCROLL = 0x0114;
 
-            if (m.Msg == WM_PAINT || m.Msg == WM_MOUSEMOVE || m.Msg == WM_LBUTTONDOWN || m.Msg == WM_LBUTTONUP || m.Msg == WM_HSCROLL)
+            if (m.Msg == WM_ERASEBKGND)
+            {
+                m.Result = (IntPtr)1;
+                return;
+            }
+
+            base.WndProc(ref m);
+
+            if (m.Msg == WM_PAINT || m.Msg == WM_HSCROLL)
             {
                 CustomPaint();
             }
@@ -6076,112 +6514,126 @@ namespace GTL_Editor
         {
             if (Width <= 0 || Height <= 0 || !IsHandleCreated) return;
 
-            using (Graphics g = Graphics.FromHwnd(Handle))
+            try
             {
-                g.SmoothingMode = SmoothingMode.AntiAlias;
-                g.PixelOffsetMode = PixelOffsetMode.Half;
-
-                Rectangle client = ClientRectangle;
-
-                // 1. Distinct track fill
-                Color trackColor = Enabled ? Color.FromArgb(232, 235, 239) : Color.FromArgb(245, 245, 247);
-                using (SolidBrush trackBrush = new SolidBrush(trackColor))
+                using (Bitmap buffer = new Bitmap(Width, Height))
                 {
-                    g.FillRectangle(trackBrush, client);
-                }
-
-                // 2. Arrow buttons
-                int arrowSize = Math.Min(Height, 22);
-                Rectangle leftArrowRect = new Rectangle(0, 0, arrowSize, Height);
-                Rectangle rightArrowRect = new Rectangle(Width - arrowSize, 0, arrowSize, Height);
-
-                Color arrowBg = Enabled ? (isHovered ? Color.FromArgb(218, 223, 230) : Color.FromArgb(226, 230, 236)) : Color.FromArgb(245, 245, 247);
-                using (SolidBrush abBrush = new SolidBrush(arrowBg))
-                {
-                    g.FillRectangle(abBrush, leftArrowRect);
-                    g.FillRectangle(abBrush, rightArrowRect);
-                }
-
-                // Arrow glyphs
-                Color glyphColor = Enabled ? Color.FromArgb(50, 54, 62) : Color.FromArgb(170, 175, 182);
-                using (SolidBrush glyphBrush = new SolidBrush(glyphColor))
-                {
-                    float cy = Height / 2f;
-                    float lMargin = arrowSize * 0.32f;
-                    PointF[] leftArrow = new PointF[]
+                    using (Graphics g = Graphics.FromImage(buffer))
                     {
-                        new PointF(lMargin, cy),
-                        new PointF(arrowSize - lMargin, cy - (arrowSize * 0.28f)),
-                        new PointF(arrowSize - lMargin, cy + (arrowSize * 0.28f))
-                    };
-                    g.FillPolygon(glyphBrush, leftArrow);
+                        g.SmoothingMode = SmoothingMode.AntiAlias;
+                        g.PixelOffsetMode = PixelOffsetMode.Half;
 
-                    float rLeft = rightArrowRect.Left;
-                    PointF[] rightArrow = new PointF[]
-                    {
-                        new PointF(rLeft + arrowSize - lMargin, cy),
-                        new PointF(rLeft + lMargin, cy - (arrowSize * 0.28f)),
-                        new PointF(rLeft + lMargin, cy + (arrowSize * 0.28f))
-                    };
-                    g.FillPolygon(glyphBrush, rightArrow);
-                }
+                        Rectangle client = ClientRectangle;
 
-                // 3. High-contrast Thumb
-                if (Enabled)
-                {
-                    int trackWidth = Width - (2 * arrowSize);
-                    int range = Maximum - Minimum;
-                    if (range > 0 && trackWidth > 0)
-                    {
-                        int minThumb = Math.Min(28, trackWidth);
-                        int thumbWidth = Math.Max(minThumb, (int)((float)LargeChange / (range + LargeChange) * trackWidth));
-                        if (thumbWidth > trackWidth) thumbWidth = trackWidth;
-
-                        int availableTrack = trackWidth - thumbWidth;
-                        int effectiveMax = Math.Max(1, range - LargeChange + 1);
-                        int valClamped = Math.Max(Minimum, Math.Min(effectiveMax + Minimum, Value));
-                        int thumbX = leftArrowRect.Right + (int)((float)(valClamped - Minimum) / effectiveMax * availableTrack);
-
-                        if (thumbX + thumbWidth > rightArrowRect.Left) thumbX = rightArrowRect.Left - thumbWidth;
-                        if (thumbX < leftArrowRect.Right) thumbX = leftArrowRect.Right;
-
-                        Rectangle thumbRect = new Rectangle(thumbX, 2, thumbWidth, Height - 4);
-                        Color thumbColor = isDragging ? Color.FromArgb(42, 48, 58) : (isHovered ? Color.FromArgb(68, 76, 90) : Color.FromArgb(92, 100, 114));
-
-                        using (SolidBrush thumbBrush = new SolidBrush(thumbColor))
+                        // 1. Distinct track fill
+                        Color trackColor = Enabled ? Color.FromArgb(232, 235, 239) : Color.FromArgb(245, 245, 247);
+                        using (SolidBrush trackBrush = new SolidBrush(trackColor))
                         {
-                            g.FillRectangle(thumbBrush, thumbRect);
+                            g.FillRectangle(trackBrush, client);
                         }
 
-                        // Subtle dark border on thumb
-                        using (Pen thumbBorderPen = new Pen(Color.FromArgb(40, 46, 56), 1f))
+                        // 2. Arrow buttons
+                        int arrowSize = Math.Min(Height, 22);
+                        Rectangle leftArrowRect = new Rectangle(0, 0, arrowSize, Height);
+                        Rectangle rightArrowRect = new Rectangle(Width - arrowSize, 0, arrowSize, Height);
+
+                        Color arrowBg = Enabled ? (isHovered ? Color.FromArgb(218, 223, 230) : Color.FromArgb(226, 230, 236)) : Color.FromArgb(245, 245, 247);
+                        using (SolidBrush abBrush = new SolidBrush(arrowBg))
                         {
-                            g.DrawRectangle(thumbBorderPen, thumbRect);
+                            g.FillRectangle(abBrush, leftArrowRect);
+                            g.FillRectangle(abBrush, rightArrowRect);
                         }
 
-                        // Thumb center grip marks (3 vertical lines)
-                        if (thumbWidth >= 20)
+                        // Arrow glyphs
+                        Color glyphColor = Enabled ? Color.FromArgb(50, 54, 62) : Color.FromArgb(170, 175, 182);
+                        using (SolidBrush glyphBrush = new SolidBrush(glyphColor))
                         {
-                            using (Pen gripPen = new Pen(Color.FromArgb(218, 224, 234), 1f))
+                            float cy = Height / 2f;
+                            float lMargin = arrowSize * 0.32f;
+                            PointF[] leftArrow = new PointF[]
                             {
-                                int midX = thumbRect.Left + thumbRect.Width / 2;
-                                int gripH = Math.Max(6, thumbRect.Height - 8);
-                                int gripY = thumbRect.Top + (thumbRect.Height - gripH) / 2;
-                                g.DrawLine(gripPen, midX - 3, gripY, midX - 3, gripY + gripH);
-                                g.DrawLine(gripPen, midX, gripY, midX, gripY + gripH);
-                                g.DrawLine(gripPen, midX + 3, gripY, midX + 3, gripY + gripH);
+                                new PointF(lMargin, cy),
+                                new PointF(arrowSize - lMargin, cy - (arrowSize * 0.28f)),
+                                new PointF(arrowSize - lMargin, cy + (arrowSize * 0.28f))
+                            };
+                            g.FillPolygon(glyphBrush, leftArrow);
+
+                            float rLeft = rightArrowRect.Left;
+                            PointF[] rightArrow = new PointF[]
+                            {
+                                new PointF(rLeft + arrowSize - lMargin, cy),
+                                new PointF(rLeft + lMargin, cy - (arrowSize * 0.28f)),
+                                new PointF(rLeft + lMargin, cy + (arrowSize * 0.28f))
+                            };
+                            g.FillPolygon(glyphBrush, rightArrow);
+                        }
+
+                        // 3. High-contrast Thumb
+                        if (Enabled)
+                        {
+                            int trackWidth = Width - (2 * arrowSize);
+                            int range = Maximum - Minimum;
+                            if (range > 0 && trackWidth > 0)
+                            {
+                                int minThumb = Math.Min(28, trackWidth);
+                                int thumbWidth = Math.Max(minThumb, (int)((float)LargeChange / (range + LargeChange) * trackWidth));
+                                if (thumbWidth > trackWidth) thumbWidth = trackWidth;
+
+                                int availableTrack = trackWidth - thumbWidth;
+                                int effectiveMax = Math.Max(1, range - LargeChange + 1);
+                                int valClamped = Math.Max(Minimum, Math.Min(effectiveMax + Minimum, Value));
+                                int thumbX = leftArrowRect.Right + (int)((float)(valClamped - Minimum) / effectiveMax * availableTrack);
+
+                                if (thumbX + thumbWidth > rightArrowRect.Left) thumbX = rightArrowRect.Left - thumbWidth;
+                                if (thumbX < leftArrowRect.Right) thumbX = leftArrowRect.Right;
+
+                                Rectangle thumbRect = new Rectangle(thumbX, 2, thumbWidth, Height - 4);
+                                Color thumbColor = isDragging ? Color.FromArgb(42, 48, 58) : (isHovered ? Color.FromArgb(68, 76, 90) : Color.FromArgb(92, 100, 114));
+
+                                using (SolidBrush thumbBrush = new SolidBrush(thumbColor))
+                                {
+                                    g.FillRectangle(thumbBrush, thumbRect);
+                                }
+
+                                // Subtle dark border on thumb
+                                using (Pen thumbBorderPen = new Pen(Color.FromArgb(40, 46, 56), 1f))
+                                {
+                                    g.DrawRectangle(thumbBorderPen, thumbRect);
+                                }
+
+                                // Thumb center grip marks (3 vertical lines)
+                                if (thumbWidth >= 20)
+                                {
+                                    using (Pen gripPen = new Pen(Color.FromArgb(218, 224, 234), 1f))
+                                    {
+                                        int midX = thumbRect.Left + thumbRect.Width / 2;
+                                        int gripH = Math.Max(6, thumbRect.Height - 8);
+                                        int gripY = thumbRect.Top + (thumbRect.Height - gripH) / 2;
+                                        g.DrawLine(gripPen, midX - 3, gripY, midX - 3, gripY + gripH);
+                                        g.DrawLine(gripPen, midX, gripY, midX, gripY + gripH);
+                                        g.DrawLine(gripPen, midX + 3, gripY, midX + 3, gripY + gripH);
+                                    }
+                                }
                             }
                         }
+
+                        // 4. Clear outer border & arrow dividers
+                        using (Pen borderPen = new Pen(Color.FromArgb(135, 142, 153), 1))
+                        {
+                            g.DrawRectangle(borderPen, 0, 0, Width - 1, Height - 1);
+                            g.DrawLine(borderPen, leftArrowRect.Right, 0, leftArrowRect.Right, Height - 1);
+                            g.DrawLine(borderPen, rightArrowRect.Left, 0, rightArrowRect.Left, Height - 1);
+                        }
+                    }
+
+                    using (Graphics gScreen = Graphics.FromHwnd(Handle))
+                    {
+                        gScreen.DrawImageUnscaled(buffer, 0, 0);
                     }
                 }
-
-                // 4. Clear outer border & arrow dividers
-                using (Pen borderPen = new Pen(Color.FromArgb(135, 142, 153), 1))
-                {
-                    g.DrawRectangle(borderPen, 0, 0, Width - 1, Height - 1);
-                    g.DrawLine(borderPen, leftArrowRect.Right, 0, leftArrowRect.Right, Height - 1);
-                    g.DrawLine(borderPen, rightArrowRect.Left, 0, rightArrowRect.Left, Height - 1);
-                }
+            }
+            catch
+            {
             }
         }
     }

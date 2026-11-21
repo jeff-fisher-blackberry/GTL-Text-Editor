@@ -541,6 +541,7 @@ namespace GTL_Editor
             this.contentstoolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.F1;
             this.contentstoolStripMenuItem.Size = new System.Drawing.Size(175, 22);
             this.contentstoolStripMenuItem.Text = "GTL Editor &Help";
+            this.contentstoolStripMenuItem.Visible = false;
             this.contentstoolStripMenuItem.Click += new System.EventHandler(this.contentstoolStripMenuItem_Click);
             // 
             // HowtotoolStripMenuItem
@@ -550,12 +551,14 @@ namespace GTL_Editor
             this.HowtotoolStripMenuItem.Name = "HowtotoolStripMenuItem";
             this.HowtotoolStripMenuItem.Size = new System.Drawing.Size(175, 22);
             this.HowtotoolStripMenuItem.Text = "How to...";
+            this.HowtotoolStripMenuItem.Visible = false;
             this.HowtotoolStripMenuItem.Click += new System.EventHandler(this.HowtotoolStripMenuItem_Click);
             // 
             // toolStripSeparator14
             // 
             this.toolStripSeparator14.Name = "toolStripSeparator14";
             this.toolStripSeparator14.Size = new System.Drawing.Size(172, 6);
+            this.toolStripSeparator14.Visible = false;
             // 
             // aboutToolStripMenuItem
             // 
@@ -1193,7 +1196,7 @@ namespace GTL_Editor
             // btnAlignBottom
             // 
             this.btnAlignBottom.BackColor = System.Drawing.SystemColors.Control;
-            this.btnAlignBottom.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnAlignBottom.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnAlignBottom.ForeColor = System.Drawing.SystemColors.Desktop;
             this.helpProvider1.SetHelpKeyword(this.btnAlignBottom, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnAlignBottom, System.Windows.Forms.HelpNavigator.KeywordIndex);
@@ -1227,7 +1230,7 @@ namespace GTL_Editor
             // btnAlignMiddle
             // 
             this.btnAlignMiddle.BackColor = System.Drawing.SystemColors.Control;
-            this.btnAlignMiddle.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnAlignMiddle.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnAlignMiddle.ForeColor = System.Drawing.SystemColors.Desktop;
             this.helpProvider1.SetHelpKeyword(this.btnAlignMiddle, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnAlignMiddle, System.Windows.Forms.HelpNavigator.KeywordIndex);
@@ -1249,7 +1252,7 @@ namespace GTL_Editor
             // btnAlignTop
             // 
             this.btnAlignTop.BackColor = System.Drawing.SystemColors.Control;
-            this.btnAlignTop.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnAlignTop.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnAlignTop.ForeColor = System.Drawing.SystemColors.Desktop;
             this.helpProvider1.SetHelpKeyword(this.btnAlignTop, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnAlignTop, System.Windows.Forms.HelpNavigator.KeywordIndex);
@@ -1271,7 +1274,7 @@ namespace GTL_Editor
             // btnAlignRights
             // 
             this.btnAlignRights.BackColor = System.Drawing.SystemColors.Control;
-            this.btnAlignRights.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnAlignRights.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnAlignRights.ForeColor = System.Drawing.SystemColors.Desktop;
             this.helpProvider1.SetHelpKeyword(this.btnAlignRights, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnAlignRights, System.Windows.Forms.HelpNavigator.KeywordIndex);
@@ -1292,7 +1295,7 @@ namespace GTL_Editor
             // btnAlignCenter
             // 
             this.btnAlignCenter.BackColor = System.Drawing.SystemColors.Control;
-            this.btnAlignCenter.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnAlignCenter.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnAlignCenter.ForeColor = System.Drawing.SystemColors.Desktop;
             this.helpProvider1.SetHelpKeyword(this.btnAlignCenter, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnAlignCenter, System.Windows.Forms.HelpNavigator.KeywordIndex);
@@ -1313,7 +1316,7 @@ namespace GTL_Editor
             // btnAlignLeft
             // 
             this.btnAlignLeft.BackColor = System.Drawing.SystemColors.Control;
-            this.btnAlignLeft.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnAlignLeft.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnAlignLeft.ForeColor = System.Drawing.SystemColors.Desktop;
             this.helpProvider1.SetHelpKeyword(this.btnAlignLeft, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnAlignLeft, System.Windows.Forms.HelpNavigator.KeywordIndex);
@@ -1356,7 +1359,7 @@ namespace GTL_Editor
             // btnReduceRange
             // 
             this.btnReduceRange.BackColor = System.Drawing.SystemColors.Control;
-            this.btnReduceRange.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnReduceRange.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnReduceRange.ForeColor = System.Drawing.SystemColors.Desktop;
             this.helpProvider1.SetHelpKeyword(this.btnReduceRange, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnReduceRange, System.Windows.Forms.HelpNavigator.KeywordIndex);
@@ -1412,7 +1415,7 @@ namespace GTL_Editor
             // 
             this.btnExtendRange.BackColor = System.Drawing.SystemColors.Control;
             this.btnExtendRange.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.btnExtendRange.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnExtendRange.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnExtendRange.ForeColor = System.Drawing.SystemColors.Desktop;
             this.helpProvider1.SetHelpKeyword(this.btnExtendRange, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnExtendRange, System.Windows.Forms.HelpNavigator.KeywordIndex);
