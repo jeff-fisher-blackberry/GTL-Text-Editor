@@ -294,6 +294,48 @@ namespace GTL_Editor
             return bmp;
         }
 
+        private Bitmap GetMaterialRotateRightGlyph(int size, Color color)
+        {
+            Bitmap bmp = new Bitmap(size, size);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.Transparent);
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+
+                float scale = size / 24.0f;
+                float S(float v) => v * scale;
+
+                using (GraphicsPath path = new GraphicsPath())
+                {
+                    path.FillMode = FillMode.Winding;
+                    path.StartFigure();
+                    path.AddLine(S(15.55f), S(5.55f), S(11.0f), S(1.0f));
+                    path.AddLine(S(11.0f), S(1.0f), S(11.0f), S(4.07f));
+                    path.AddBezier(S(11.0f), S(4.07f), S(7.06f), S(4.56f), S(4.0f), S(7.92f), S(4.0f), S(12.0f));
+                    path.AddBezier(S(4.0f), S(12.0f), S(4.0f), S(16.08f), S(7.06f), S(19.44f), S(11.0f), S(19.93f));
+                    path.AddLine(S(11.0f), S(19.93f), S(11.0f), S(17.91f));
+                    path.AddBezier(S(11.0f), S(17.91f), S(8.16f), S(17.43f), S(6.0f), S(14.97f), S(6.0f), S(12.0f));
+                    path.AddBezier(S(6.0f), S(12.0f), S(6.0f), S(9.03f), S(8.16f), S(6.57f), S(11.0f), S(6.09f));
+                    path.AddLine(S(11.0f), S(6.09f), S(11.0f), S(10.0f));
+                    path.AddLine(S(11.0f), S(10.0f), S(15.55f), S(5.55f));
+                    path.CloseFigure();
+
+                    using (Brush brush = new SolidBrush(color))
+                    {
+                        g.FillPath(brush, path);
+                    }
+                }
+            }
+            return bmp;
+        }
+
+        private Bitmap GetMaterialRotateLeftGlyph(int size, Color color)
+        {
+            Bitmap bmp = GetMaterialRotateRightGlyph(size, color);
+            bmp.RotateFlip(RotateFlipType.RotateNoneFlipX);
+            return bmp;
+        }
+
         private static GraphicsPath ParseSvgPath(string pathData, float targetSize, float srcViewBox = 24.0f)
         {
             GraphicsPath path = new GraphicsPath();
@@ -930,13 +972,8 @@ namespace GTL_Editor
                 SetupDropdownHighlightFix(cboClear);
             }
 
-            // Enlarge groupBox3 and maintain aligned spacing for groupBox1 below it
+            // Enlarge groupBox3 to standard 390 width
             groupBox3.Size = new Size(390, 156);
-            if (groupBox1 != null)
-            {
-                groupBox1.Location = new Point(groupBox3.Left, groupBox3.Bottom + 8);
-                groupBox1.Width = groupBox3.Width;
-            }
 
             // Clear any ImageList on text buttons to avoid reserved icon space clipping text
             btnStretch.ImageList = null;
@@ -1185,6 +1222,154 @@ namespace GTL_Editor
             LayoutRotationControls();
         }
 
+        public enum LeftPanelTab
+        {
+            Tile,
+            Text,
+            StoredPositions
+        }
+
+        private Panel panelLeftTabs;
+        private Button btnTabTile;
+        private Button btnTabTileText;
+        private Button btnTabPositions;
+        private LeftPanelTab currentLeftTab = LeftPanelTab.Text;
+
+        public void SelectLeftTab(LeftPanelTab tab)
+        {
+            currentLeftTab = tab;
+
+            if (groupBox3 != null)
+            {
+                groupBox3.Visible = (tab == LeftPanelTab.Tile);
+                if (groupBox3.Visible) groupBox3.BringToFront();
+            }
+            if (groupBox1 != null)
+            {
+                groupBox1.Visible = (tab == LeftPanelTab.Text);
+                if (groupBox1.Visible) groupBox1.BringToFront();
+            }
+            if (groupBox4 != null)
+            {
+                groupBox4.Visible = (tab == LeftPanelTab.StoredPositions);
+                if (groupBox4.Visible) groupBox4.BringToFront();
+            }
+
+            UpdateLeftTabStyles();
+            LayoutMainFormContainers();
+        }
+
+        public void ShowTextTab()
+        {
+            SelectLeftTab(LeftPanelTab.Text);
+        }
+
+        private void UpdateLeftTabStyles()
+        {
+            Color activeBg = Color.White;
+            Color activeBorder = Color.FromArgb(0, 120, 215);
+            Color inactiveBg = Color.FromArgb(235, 238, 242);
+            Color inactiveBorder = Color.FromArgb(195, 200, 208);
+
+            UpdateButtonTab(btnTabTile, currentLeftTab == LeftPanelTab.Tile, activeBg, activeBorder, inactiveBg, inactiveBorder);
+            UpdateButtonTab(btnTabTileText, currentLeftTab == LeftPanelTab.Text, activeBg, activeBorder, inactiveBg, inactiveBorder);
+            UpdateButtonTab(btnTabPositions, currentLeftTab == LeftPanelTab.StoredPositions, activeBg, activeBorder, inactiveBg, inactiveBorder);
+        }
+
+        private void UpdateButtonTab(Button btn, bool isActive, Color activeBg, Color activeBorder, Color inactiveBg, Color inactiveBorder)
+        {
+            if (btn == null) return;
+            btn.BackColor = isActive ? activeBg : inactiveBg;
+            btn.ForeColor = isActive ? Color.FromArgb(0, 90, 180) : Color.FromArgb(60, 64, 70);
+            btn.Font = new Font(this.Font.FontFamily, 9.25f, isActive ? FontStyle.Bold : FontStyle.Regular);
+            btn.FlatAppearance.BorderColor = isActive ? activeBorder : inactiveBorder;
+            btn.FlatAppearance.BorderSize = isActive ? 2 : 1;
+        }
+
+        public void UpdateStoredPositionsTabBadge()
+        {
+            if (btnTabPositions != null)
+            {
+                int count = (PositionDisplay != null) ? PositionDisplay.Count : 0;
+                btnTabPositions.Text = count > 0 ? $"Positions ({count})" : "Positions";
+            }
+        }
+
+        private void InitializeLeftPanelTabs()
+        {
+            panelLeftTabs = new Panel
+            {
+                Name = "panelLeftTabs",
+                Location = new Point(7, toolStrip1.Bottom + 1),
+                Size = new Size(390, 32),
+                BackColor = SystemColors.Control
+            };
+
+            Font tabFont = new Font(this.Font.FontFamily, 9.25f, FontStyle.Regular);
+
+            btnTabTile = new Button
+            {
+                Name = "btnTabTile",
+                Text = "Tile Tools",
+                Font = tabFont,
+                Location = new Point(0, 0),
+                Size = new Size(126, 32),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            btnTabTile.FlatAppearance.BorderSize = 1;
+            btnTabTile.Click += (s, e) => SelectLeftTab(LeftPanelTab.Tile);
+
+            btnTabTileText = new Button
+            {
+                Name = "btnTabTileText",
+                Text = "Text Tools",
+                Font = tabFont,
+                Location = new Point(btnTabTile.Right + 3, 0),
+                Size = new Size(126, 32),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            btnTabTileText.FlatAppearance.BorderSize = 1;
+            btnTabTileText.Click += (s, e) => SelectLeftTab(LeftPanelTab.Text);
+
+            btnTabPositions = new Button
+            {
+                Name = "btnTabPositions",
+                Text = "Positions",
+                Font = tabFont,
+                Location = new Point(btnTabTileText.Right + 3, 0),
+                Size = new Size(panelLeftTabs.Width - btnTabTileText.Right - 3, 32),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand
+            };
+            btnTabPositions.FlatAppearance.BorderSize = 1;
+            btnTabPositions.Click += (s, e) => SelectLeftTab(LeftPanelTab.StoredPositions);
+
+            panelLeftTabs.Controls.Add(btnTabTile);
+            panelLeftTabs.Controls.Add(btnTabTileText);
+            panelLeftTabs.Controls.Add(btnTabPositions);
+
+            this.Controls.Add(panelLeftTabs);
+            panelLeftTabs.BringToFront();
+
+            if (panel3 != null)
+            {
+                panel3.ControlAdded += (s, e) =>
+                {
+                    if (e.Control is positionTextDisplay ptd)
+                    {
+                        ptd.btnRestore.Click += (btnSender, btnArgs) => ShowTextTab();
+                        ptd.btnSelect.Click += (btnSender, btnArgs) => ShowTextTab();
+                    }
+                    UpdateStoredPositionsTabBadge();
+                };
+                panel3.ControlRemoved += (s, e) => UpdateStoredPositionsTabBadge();
+            }
+
+            SelectLeftTab(LeftPanelTab.Text);
+        }
+
         private void LayoutMainFormContainers()
         {
             if (toolStrip1 == null || groupBox3 == null || groupBox2 == null || groupBox1 == null || groupBox4 == null)
@@ -1194,14 +1379,33 @@ namespace GTL_Editor
 
             int flushTop = toolStrip1.Bottom + 1;
 
-            groupBox3.Top = flushTop;
-            groupBox2.Top = flushTop;
-
-            if (groupBox1 != null)
+            if (panelLeftTabs != null)
             {
-                groupBox1.Location = new Point(groupBox3.Left, groupBox3.Bottom + 8);
-                groupBox1.Width = groupBox3.Width;
+                panelLeftTabs.Top = flushTop;
+                panelLeftTabs.Left = 7;
+                panelLeftTabs.Width = 390;
             }
+
+            int contentTop = (panelLeftTabs != null) ? panelLeftTabs.Bottom + 4 : flushTop;
+            int availableHeight = Math.Max(200, (statusStrip1 != null ? statusStrip1.Top : ClientRectangle.Height) - contentTop - 8);
+
+            // GroupBox3: Tile Tools (natural height 156)
+            groupBox3.Location = new Point(7, contentTop);
+            groupBox3.Width = 390;
+            groupBox3.Height = 156;
+
+            // GroupBox1: Text Tools (natural height 536, fits completely in availableHeight ~570px)
+            groupBox1.Location = new Point(7, contentTop);
+            groupBox1.Width = 390;
+            groupBox1.Height = availableHeight;
+
+            // GroupBox4: Stored Position Area (fills full available vertical height)
+            groupBox4.Location = new Point(7, contentTop);
+            groupBox4.Width = 390;
+            groupBox4.Height = availableHeight;
+
+            // Middle column: Working Tile Area
+            groupBox2.Top = flushTop;
 
             if (vScrollBar1 != null)
             {
@@ -1274,6 +1478,8 @@ namespace GTL_Editor
 
         private void SyncvScrollBar2()
         {
+            UpdateStoredPositionsTabBadge();
+
             if (vScrollBar2 == null || panel2 == null || panel3 == null)
             {
                 return;
@@ -1493,8 +1699,8 @@ namespace GTL_Editor
             SetButtonImage(replaceTooltoolStripButton1, GetModernGlyph("\uE117", iconSize, Color.Black));
             
             SetButtonImage(lockRotationtoolStripButton1, GetModernGlyph("\uE72E", iconSize, Color.Black));
-            SetButtonImage(toolRotateLeftButton, GetModernGlyph("\uE7A6", iconSize, Color.Black));
-            SetButtonImage(toolRotateRightButton, GetModernGlyph("\uE7A7", iconSize, Color.Black));
+            SetButtonImage(toolRotateLeftButton, GetMaterialRotateLeftGlyph(iconSize, Color.Black));
+            SetButtonImage(toolRotateRightButton, GetMaterialRotateRightGlyph(iconSize, Color.Black));
             
             SetButtonImage(lockFliptoolStripButton1, GetModernGlyph("\uE72E", iconSize, Color.Black));
             SetButtonImage(toolFlipHorizontal, GetArrowRangeGlyph(iconSize, Color.Black));
@@ -1558,6 +1764,7 @@ namespace GTL_Editor
             mruMenu = new MruStripMenuInline(fileToolStripMenuItem, MRUToolStripMenuItem, new MruStripMenu.ClickedHandler(OnMruFile), mruRegKey + "\\MRU",8);
             
             ApplyHigherContrastBorders();
+            InitializeLeftPanelTabs();
             
             // Programmatically bind canvas interaction events
             workingTile.MouseDown += new MouseEventHandler(workingTile_MouseDown);
@@ -3918,7 +4125,7 @@ namespace GTL_Editor
                 string defaultBase = !string.IsNullOrWhiteSpace(currentfilename)
                     ? Path.GetFileNameWithoutExtension(currentfilename)
                     : "Tile";
-                sfd.FileName = $"{defaultBase} - 01.png";
+                sfd.FileName = $"{defaultBase}-01.png";
 
                 if (sfd.ShowDialog(this) != DialogResult.OK)
                     return;
@@ -3932,7 +4139,7 @@ namespace GTL_Editor
 
                 string rawName = Path.GetFileNameWithoutExtension(sfd.FileName);
 
-                // Strip trailing counter suffix from user-entered name (e.g. trailing " - 01", "_01", " 1", "_1")
+                // Strip trailing counter suffix from user-entered name (e.g. trailing "-01", " - 01", "_01", " 1", "_1")
                 string baseName = Regex.Replace(rawName, @"[\s_-]+0*\d+$", "").Trim();
                 char[] invalidChars = Path.GetInvalidFileNameChars();
                 string safeBaseName = string.Concat(baseName.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries)).Trim();
@@ -3947,7 +4154,7 @@ namespace GTL_Editor
                 bool anyExisting = false;
                 for (int i = 0; i < totalTiles; i++)
                 {
-                    string testPath = Path.Combine(targetDir, $"{safeBaseName} - {(i + 1).ToString(formatString)}.png");
+                    string testPath = Path.Combine(targetDir, $"{safeBaseName}-{(i + 1).ToString(formatString)}.png");
                     if (File.Exists(testPath))
                     {
                         anyExisting = true;
@@ -3958,7 +4165,7 @@ namespace GTL_Editor
                 if (anyExisting)
                 {
                     DialogResult overwriteChoice = MessageBox.Show(
-                        $"One or more files matching '{safeBaseName} - XX.png' already exist in the selected folder.\n\nDo you want to overwrite them?",
+                        $"One or more files matching '{safeBaseName}-XX.png' already exist in the selected folder.\n\nDo you want to overwrite them?",
                         "Confirm Overwrite",
                         MessageBoxButtons.YesNo,
                         MessageBoxIcon.Question);
@@ -3977,7 +4184,7 @@ namespace GTL_Editor
                         using (Bitmap tileBmp = (Bitmap)display.fullTile.Image.Clone())
                         {
                             tileBmp.MakeTransparent(maskColor);
-                            string outFileName = $"{safeBaseName} - {(i + 1).ToString(formatString)}.png";
+                            string outFileName = $"{safeBaseName}-{(i + 1).ToString(formatString)}.png";
                             string fullPath = Path.Combine(targetDir, outFileName);
                             tileBmp.Save(fullPath, ImageFormat.Png);
                             exportedCount++;

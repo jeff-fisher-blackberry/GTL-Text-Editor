@@ -3,7 +3,7 @@
     <OutputType>Package</OutputType>
     <Platform Condition="'$(Platform)' == '' or '$(Platform)' == 'Any CPU'">x64</Platform>
     <Platforms>x64</Platforms>
-    <OutputName>GTL Text Editor - 1.9</OutputName>
+    <OutputName>GTL Text Editor - 1.10</OutputName>
   </PropertyGroup>
 
   <ItemGroup>
