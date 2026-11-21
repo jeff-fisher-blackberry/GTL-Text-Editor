@@ -3,11 +3,18 @@
     <OutputType>Package</OutputType>
     <Platform Condition="'$(Platform)' == '' or '$(Platform)' == 'Any CPU'">x64</Platform>
     <Platforms>x64</Platforms>
-    <OutputName>GTLEditorSetup</OutputName>
+    <OutputName>GTL Text Editor - 1.9</OutputName>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
+  </ItemGroup>
+
+  <!-- Enforce build dependency order so GTL Editor completes before installer packaging -->
+  <ItemGroup>
+    <ProjectReference Include="..\Read_GTL\GTL Editor.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
   </ItemGroup>
 
   <!-- Ensure GTL Editor is published before creating the MSI package -->

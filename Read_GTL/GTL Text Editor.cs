@@ -197,7 +197,7 @@ namespace GTL_Editor
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
                 float scale = size / 48.0f;
-                float penWidth = Math.Max(2.0f, 2.8f * scale);
+                float penWidth = Math.Max(1.4f, 2.8f * scale);
                 using (Pen pen = new Pen(color, penWidth))
                 using (Brush brush = new SolidBrush(color))
                 {
@@ -250,7 +250,7 @@ namespace GTL_Editor
                 g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
                 float scale = size / 48.0f;
-                float penWidth = Math.Max(2.0f, 2.8f * scale);
+                float penWidth = Math.Max(1.4f, 2.8f * scale);
                 using (Pen pen = new Pen(color, penWidth))
                 using (Brush brush = new SolidBrush(color))
                 {
@@ -289,6 +289,417 @@ namespace GTL_Editor
                         new PointF(midX + arrHalf, size - tickMargin - 1.5f * scale - arrLen)
                     };
                     g.FillPolygon(brush, ptsBottom);
+                }
+            }
+            return bmp;
+        }
+
+        private static GraphicsPath ParseSvgPath(string pathData, float targetSize, float srcViewBox = 24.0f)
+        {
+            GraphicsPath path = new GraphicsPath();
+            path.FillMode = FillMode.Winding;
+
+            float scale = targetSize / srcViewBox;
+            List<string> tokens = new List<string>();
+            int i = 0;
+            while (i < pathData.Length)
+            {
+                char c = pathData[i];
+                if (char.IsWhiteSpace(c) || c == ',')
+                {
+                    i++;
+                    continue;
+                }
+                if (char.IsLetter(c))
+                {
+                    tokens.Add(c.ToString());
+                    i++;
+                    continue;
+                }
+                int start = i;
+                if (pathData[i] == '-' || pathData[i] == '+') i++;
+                bool hasDot = false;
+                while (i < pathData.Length && (char.IsDigit(pathData[i]) || (!hasDot && pathData[i] == '.')))
+                {
+                    if (pathData[i] == '.') hasDot = true;
+                    i++;
+                }
+                tokens.Add(pathData.Substring(start, i - start));
+            }
+
+            float curX = 0, curY = 0;
+            float startFigX = 0, startFigY = 0;
+            float lastControlX = 0, lastControlY = 0;
+            char lastCmd = ' ';
+            int tIdx = 0;
+
+            float S(float v) => v * scale;
+
+            while (tIdx < tokens.Count)
+            {
+                string token = tokens[tIdx];
+                char cmd = token[0];
+                if (char.IsLetter(cmd))
+                {
+                    tIdx++;
+                }
+                else
+                {
+                    cmd = (lastCmd == 'M') ? 'L' : (lastCmd == 'm') ? 'l' : lastCmd;
+                }
+
+                switch (cmd)
+                {
+                    case 'M':
+                    case 'm':
+                        {
+                            float x = float.Parse(tokens[tIdx++], System.Globalization.CultureInfo.InvariantCulture);
+                            float y = float.Parse(tokens[tIdx++], System.Globalization.CultureInfo.InvariantCulture);
+                            curX = (cmd == 'm') ? curX + x : x;
+                            curY = (cmd == 'm') ? curY + y : y;
+                            startFigX = curX;
+                            startFigY = curY;
+                            lastControlX = curX;
+                            lastControlY = curY;
+                            path.StartFigure();
+                            break;
+                        }
+                    case 'L':
+                    case 'l':
+                        {
+                            float x = float.Parse(tokens[tIdx++], System.Globalization.CultureInfo.InvariantCulture);
+                            float y = float.Parse(tokens[tIdx++], System.Globalization.CultureInfo.InvariantCulture);
+                            float nextX = (cmd == 'l') ? curX + x : x;
+                            float nextY = (cmd == 'l') ? curY + y : y;
+                            path.AddLine(S(curX), S(curY), S(nextX), S(nextY));
+                            curX = nextX;
+                            curY = nextY;
+                            lastControlX = curX;
+                            lastControlY = curY;
+                            break;
+                        }
+                    case 'H':
+                    case 'h':
+                        {
+                            float x = float.Parse(tokens[tIdx++], System.Globalization.CultureInfo.InvariantCulture);
+                            float nextX = (cmd == 'h') ? curX + x : x;
+                            path.AddLine(S(curX), S(curY), S(nextX), S(curY));
+                            curX = nextX;
+                            lastControlX = curX;
+                            break;
+                        }
+                    case 'V':
+                    case 'v':
+                        {
+                            float y = float.Parse(tokens[tIdx++], System.Globalization.CultureInfo.InvariantCulture);
+                            float nextY = (cmd == 'v') ? curY + y : y;
+                            path.AddLine(S(curX), S(curY), S(curX), S(nextY));
+                            curY = nextY;
+                            lastControlY = curY;
+                            break;
+                        }
+                    case 'Q':
+                    case 'q':
+                        {
+                            float x1 = float.Parse(tokens[tIdx++], System.Globalization.CultureInfo.InvariantCulture);
+                            float y1 = float.Parse(tokens[tIdx++], System.Globalization.CultureInfo.InvariantCulture);
+                            float x = float.Parse(tokens[tIdx++], System.Globalization.CultureInfo.InvariantCulture);
+                            float y = float.Parse(tokens[tIdx++], System.Globalization.CultureInfo.InvariantCulture);
+
+                            float cX = (cmd == 'q') ? curX + x1 : x1;
+                            float cY = (cmd == 'q') ? curY + y1 : y1;
+                            float endX = (cmd == 'q') ? curX + x : x;
+                            float endY = (cmd == 'q') ? curY + y : y;
+
+                            float cp1x = curX + (2.0f / 3.0f) * (cX - curX);
+                            float cp1y = curY + (2.0f / 3.0f) * (cY - curY);
+                            float cp2x = endX + (2.0f / 3.0f) * (cX - endX);
+                            float cp2y = endY + (2.0f / 3.0f) * (cY - endY);
+
+                            path.AddBezier(S(curX), S(curY), S(cp1x), S(cp1y), S(cp2x), S(cp2y), S(endX), S(endY));
+
+                            lastControlX = cX;
+                            lastControlY = cY;
+                            curX = endX;
+                            curY = endY;
+                            break;
+                        }
+                    case 'T':
+                    case 't':
+                        {
+                            float cX = 2 * curX - lastControlX;
+                            float cY = 2 * curY - lastControlY;
+
+                            float x = float.Parse(tokens[tIdx++], System.Globalization.CultureInfo.InvariantCulture);
+                            float y = float.Parse(tokens[tIdx++], System.Globalization.CultureInfo.InvariantCulture);
+                            float endX = (cmd == 't') ? curX + x : x;
+                            float endY = (cmd == 't') ? curY + y : y;
+
+                            float cp1x = curX + (2.0f / 3.0f) * (cX - curX);
+                            float cp1y = curY + (2.0f / 3.0f) * (cY - curY);
+                            float cp2x = endX + (2.0f / 3.0f) * (cX - endX);
+                            float cp2y = endY + (2.0f / 3.0f) * (cY - endY);
+
+                            path.AddBezier(S(curX), S(curY), S(cp1x), S(cp1y), S(cp2x), S(cp2y), S(endX), S(endY));
+
+                            lastControlX = cX;
+                            lastControlY = cY;
+                            curX = endX;
+                            curY = endY;
+                            break;
+                        }
+                    case 'Z':
+                    case 'z':
+                        {
+                            path.CloseFigure();
+                            curX = startFigX;
+                            curY = startFigY;
+                            lastControlX = curX;
+                            lastControlY = curY;
+                            break;
+                        }
+                }
+                lastCmd = cmd;
+            }
+
+            return path;
+        }
+
+        private Bitmap GetFontDownloadGlyph(int size, Color color)
+        {
+            Bitmap bmp = new Bitmap(size, size);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.Transparent);
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+
+                string svgPathData = "M6.4,18H8.5l1.1-3.05h4.8L15.5,18h2.1L13.05,6h-2.1L6.4,18Zm3.8-4.8l1.75-4.95h0.1L13.8,13.2H10.2ZM4,22q-0.82,0-1.41-0.59T2,20V4Q2,3.17 2.59,2.59T4,2H20q0.83,0 1.41,0.59T22,4V20q0,0.82-0.59,1.41T20,22H4Zm0-2H20V4H4V20ZM4,4V20V4Z";
+
+                using (GraphicsPath path = ParseSvgPath(svgPathData, size, 24.0f))
+                using (Brush brush = new SolidBrush(color))
+                {
+                    g.FillPath(brush, path);
+                }
+            }
+            return bmp;
+        }
+
+        private Bitmap GetFormatColorTextGlyph(int size, Color textColor, Color barColor)
+        {
+            Bitmap bmp = new Bitmap(size, size);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.Transparent);
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+                float scale = size / 48.0f;
+                float fontPixelSize = 27.0f * scale;
+
+                using (Font fontA = new Font("Segoe UI", fontPixelSize, FontStyle.Bold, GraphicsUnit.Pixel))
+                using (Brush brushText = new SolidBrush(textColor))
+                using (Brush brushBar = new SolidBrush(barColor))
+                using (StringFormat sf = new StringFormat { Alignment = StringAlignment.Center })
+                {
+                    g.DrawString("A", fontA, brushText, size / 2.0f, 4.0f * scale, sf);
+
+                    float barX = 9.0f * scale;
+                    float barY = 37.0f * scale;
+                    float barW = 30.0f * scale;
+                    float barH = 5.0f * scale;
+                    g.FillRectangle(brushBar, barX, barY, barW, barH);
+                }
+            }
+            return bmp;
+        }
+
+        private Bitmap GetTextIncreaseGlyph(int size, Color color)
+        {
+            Bitmap bmp = new Bitmap(size, size);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.Transparent);
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+                float scale = size / 48.0f;
+                float fontPixelSize = 25.0f * scale;
+
+                using (Font fontA = new Font("Segoe UI", fontPixelSize, FontStyle.Bold, GraphicsUnit.Pixel))
+                using (Brush brush = new SolidBrush(color))
+                using (Pen pen = new Pen(color, Math.Max(1.8f, 2.6f * scale)))
+                {
+                    pen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
+                    pen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+
+                    g.DrawString("A", fontA, brush, 4.0f * scale, 8.0f * scale);
+
+                    float arrowX = 36.0f * scale;
+                    float arrowBottom = 34.0f * scale;
+                    float arrowTop = 16.0f * scale;
+                    g.DrawLine(pen, arrowX, arrowBottom, arrowX, arrowTop);
+
+                    float headLen = 6.5f * scale;
+                    float headHalf = 5.0f * scale;
+                    PointF[] arrowPts = new PointF[]
+                    {
+                        new PointF(arrowX, arrowTop - 2.0f * scale),
+                        new PointF(arrowX - headHalf, arrowTop + headLen - 2.0f * scale),
+                        new PointF(arrowX + headHalf, arrowTop + headLen - 2.0f * scale)
+                    };
+                    g.FillPolygon(brush, arrowPts);
+                }
+            }
+            return bmp;
+        }
+
+        private Bitmap GetTextDecreaseGlyph(int size, Color color)
+        {
+            Bitmap bmp = new Bitmap(size, size);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.Transparent);
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+                float scale = size / 48.0f;
+                float fontPixelSize = 25.0f * scale;
+
+                using (Font fontA = new Font("Segoe UI", fontPixelSize, FontStyle.Bold, GraphicsUnit.Pixel))
+                using (Brush brush = new SolidBrush(color))
+                using (Pen pen = new Pen(color, Math.Max(1.8f, 2.6f * scale)))
+                {
+                    pen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
+                    pen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+
+                    g.DrawString("A", fontA, brush, 4.0f * scale, 8.0f * scale);
+
+                    float arrowX = 36.0f * scale;
+                    float arrowTop = 16.0f * scale;
+                    float arrowBottom = 34.0f * scale;
+                    g.DrawLine(pen, arrowX, arrowBottom, arrowX, arrowTop);
+
+                    float headLen = 6.5f * scale;
+                    float headHalf = 5.0f * scale;
+                    PointF[] arrowPts = new PointF[]
+                    {
+                        new PointF(arrowX, arrowBottom + 2.0f * scale),
+                        new PointF(arrowX - headHalf, arrowBottom - headLen + 2.0f * scale),
+                        new PointF(arrowX + headHalf, arrowBottom - headLen + 2.0f * scale)
+                    };
+                    g.FillPolygon(brush, arrowPts);
+                }
+            }
+            return bmp;
+        }
+
+        private Bitmap GetFormatBoldGlyph(int size, Color color)
+        {
+            Bitmap bmp = new Bitmap(size, size);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.Transparent);
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+                float scale = size / 48.0f;
+                float fontPixelSize = 31.0f * scale;
+
+                using (Font fontB = new Font("Segoe UI", fontPixelSize, FontStyle.Bold, GraphicsUnit.Pixel))
+                using (Brush brush = new SolidBrush(color))
+                using (StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+                {
+                    g.DrawString("B", fontB, brush, new RectangleF(0, 0, size, size), sf);
+                }
+            }
+            return bmp;
+        }
+
+        private Bitmap GetFormatItalicGlyph(int size, Color color)
+        {
+            Bitmap bmp = new Bitmap(size, size);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.Transparent);
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+                float scale = size / 48.0f;
+                float fontPixelSize = 31.0f * scale;
+
+                using (Font fontI = new Font("Georgia", fontPixelSize, FontStyle.Bold | FontStyle.Italic, GraphicsUnit.Pixel))
+                using (Brush brush = new SolidBrush(color))
+                using (StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+                {
+                    g.DrawString("I", fontI, brush, new RectangleF(0, 0, size, size), sf);
+                }
+            }
+            return bmp;
+        }
+
+        private Bitmap GetLowDensityTileGlyph(int size, Color color)
+        {
+            Bitmap bmp = new Bitmap(size, size);
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.Transparent);
+                g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+
+                float scale = size / 48.0f;
+                float margin = 8.0f * scale;
+                float x0 = margin;
+                float y0 = margin;
+                float x1 = size - margin;
+                float y1 = size - margin;
+                float stroke = Math.Max(2.0f, 3.0f * scale);
+
+                // Bottom and Right solid L-bracket
+                using (Pen solidPen = new Pen(color, stroke))
+                {
+                    solidPen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
+                    solidPen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+                    solidPen.LineJoin = System.Drawing.Drawing2D.LineJoin.Round;
+                    g.DrawLines(solidPen, new PointF[]
+                    {
+                        new PointF(x0, y1),
+                        new PointF(x1, y1),
+                        new PointF(x1, y0)
+                    });
+                }
+
+                // Top and Left segmented / dashed border
+                using (Pen dashPen = new Pen(color, stroke))
+                {
+                    dashPen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
+                    dashPen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+                    dashPen.DashCap = System.Drawing.Drawing2D.DashCap.Round;
+                    dashPen.DashPattern = new float[] { 2.4f, 2.2f };
+                    dashPen.LineJoin = System.Drawing.Drawing2D.LineJoin.Round;
+                    g.DrawLines(dashPen, new PointF[]
+                    {
+                        new PointF(x1, y0),
+                        new PointF(x0, y0),
+                        new PointF(x0, y1)
+                    });
+                }
+
+                // Inner sub-square in the upper-left quadrant (half-size tile representation)
+                float innerMargin = stroke * 1.3f;
+                float innerX = x0 + innerMargin;
+                float innerY = y0 + innerMargin;
+                float innerW = (x1 - x0) * 0.44f;
+                float innerH = (y1 - y0) * 0.44f;
+
+                using (Brush subBrush = new SolidBrush(Color.FromArgb(40, color)))
+                {
+                    g.FillRectangle(subBrush, innerX, innerY, innerW, innerH);
+                }
+
+                using (Pen subPen = new Pen(color, Math.Max(1.4f, stroke * 0.70f)))
+                {
+                    subPen.DashCap = System.Drawing.Drawing2D.DashCap.Round;
+                    subPen.DashPattern = new float[] { 1.8f, 1.8f };
+                    g.DrawRectangle(subPen, innerX, innerY, innerW, innerH);
                 }
             }
             return bmp;
@@ -388,8 +799,8 @@ namespace GTL_Editor
             }
             if (w <= 0 || h <= 0)
             {
-                w = 34;
-                h = 46;
+                w = 38;
+                h = 54;
             }
 
             Bitmap bmp = new Bitmap(w, h);
@@ -401,7 +812,7 @@ namespace GTL_Editor
                 g.TranslateTransform(w / 2f, h / 2f);
                 g.RotateTransform(angle);
                 
-                using (Font font = new Font(this.Font.FontFamily, this.Font.Size, FontStyle.Regular))
+                using (Font font = new Font(this.Font.FontFamily, 10.0f, FontStyle.Regular))
                 using (Brush brush = new SolidBrush(Color.Black))
                 {
                     SizeF size = g.MeasureString(text, font);
@@ -424,27 +835,80 @@ namespace GTL_Editor
                 return;
             }
 
-            int rotationY = chkIncrement.Bottom + 12;
+            int rotationY = chkIncrement.Bottom + 16;
 
-            btnRotate180.Size = new Size(54, 28);
-            btnRotate0.Size = new Size(54, 28);
-            btnRotate90.Size = new Size(34, 46);
-            btnRotateminus90.Size = new Size(34, 46);
+            int horizBtnW = 54;
+            int horizBtnH = 32;
+            int vertBtnW = 38;
+            int vertBtnH = 46;
+            int crossGap = 4;
 
-            btnRotateminus90.Location = new Point(14 + btnRotate180.Width + 6, rotationY);
-            btnRotate180.Location = new Point(14, rotationY + btnRotateminus90.Height / 2 - btnRotate180.Height / 2);
-            btnRotate0.Location = new Point(btnRotateminus90.Right + 6, btnRotate180.Top);
-            btnRotate90.Location = new Point(btnRotateminus90.Left, btnRotate180.Bottom + 6);
+            int crossMidX = 14 + horizBtnW + crossGap;
+            btnRotateminus90.Location = new Point(crossMidX, rotationY);
+            btnRotateminus90.Size = new Size(vertBtnW, vertBtnH);
 
-            pctRotate.Location = new Point(btnRotate0.Right + 14, rotationY);
-            pctRotate.Size = new Size(50, 50);
+            int midRowY = btnRotateminus90.Bottom + crossGap;
+            btnRotate180.Location = new Point(14, midRowY);
+            btnRotate180.Size = new Size(horizBtnW, horizBtnH);
 
-            txtRotate.Location = new Point(pctRotate.Left, pctRotate.Bottom + 6);
-            txtRotate.Width = 40;
+            btnRotate0.Location = new Point(crossMidX + vertBtnW + crossGap, midRowY);
+            btnRotate0.Size = new Size(horizBtnW, horizBtnH);
 
-            hScrollRotate.Left = txtRotate.Right + 6;
+            btnRotate90.Location = new Point(crossMidX, midRowY + horizBtnH + crossGap);
+            btnRotate90.Size = new Size(vertBtnW, vertBtnH);
+
+            int rightAreaX = btnRotate0.Right + 16;
+            int rightAreaWidth = groupBox1.ClientSize.Width - rightAreaX - 14;
+
+            pctRotate.Size = new Size(80, 80);
+            pctRotate.Location = new Point(rightAreaX + (rightAreaWidth - pctRotate.Width) / 2, rotationY);
+
+            int angleControlsY = pctRotate.Bottom + 12;
+            txtRotate.Font = new Font(this.Font.FontFamily, 10f, FontStyle.Regular);
+            txtRotate.TextAlign = HorizontalAlignment.Center;
+            txtRotate.Size = new Size(50, 28);
+            txtRotate.Location = new Point(rightAreaX, angleControlsY);
+
+            hScrollRotate.Left = txtRotate.Right + 8;
+            hScrollRotate.Height = 24;
             hScrollRotate.Top = txtRotate.Top + (txtRotate.Height - hScrollRotate.Height) / 2;
             hScrollRotate.Width = groupBox1.ClientSize.Width - hScrollRotate.Left - 14;
+            hScrollRotate.BringToFront();
+
+            RenderRotationButtonImage(btnRotate0, "0", 0.0f);
+            RenderRotationButtonImage(btnRotate90, "90", 90.0f);
+            RenderRotationButtonImage(btnRotate180, "180", 180.0f);
+            RenderRotationButtonImage(btnRotateminus90, "270", 270.0f);
+        }
+
+        private bool dropdownHighlightFixConfigured = false;
+
+        private void SetupDropdownHighlightFix(ComboBox cbo)
+        {
+            if (cbo == null) return;
+
+            Action clearSel = () =>
+            {
+                if (cbo.IsHandleCreated)
+                {
+                    cbo.BeginInvoke(new Action(() =>
+                    {
+                        cbo.SelectionLength = 0;
+                        cbo.SelectionStart = 0;
+                    }));
+                }
+                else
+                {
+                    cbo.SelectionLength = 0;
+                    cbo.SelectionStart = 0;
+                }
+            };
+
+            cbo.SelectedIndexChanged += (s, e) => clearSel();
+            cbo.DropDownClosed += (s, e) => clearSel();
+            cbo.Leave += (s, e) => clearSel();
+            cbo.MouseUp += (s, e) => clearSel();
+            cbo.Enter += (s, e) => clearSel();
         }
 
         private void LayoutTileWorkingArea()
@@ -455,6 +919,23 @@ namespace GTL_Editor
                 cboClear == null || btnClear == null)
             {
                 return;
+            }
+
+            // Wire highlight clear handlers on dropdowns to prevent persistent blue selection
+            if (!dropdownHighlightFixConfigured)
+            {
+                dropdownHighlightFixConfigured = true;
+                SetupDropdownHighlightFix(cboCornerSize);
+                SetupDropdownHighlightFix(cboBorderSize);
+                SetupDropdownHighlightFix(cboClear);
+            }
+
+            // Enlarge groupBox3 and maintain aligned spacing for groupBox1 below it
+            groupBox3.Size = new Size(390, 156);
+            if (groupBox1 != null)
+            {
+                groupBox1.Location = new Point(groupBox3.Left, groupBox3.Bottom + 8);
+                groupBox1.Width = groupBox3.Width;
             }
 
             // Clear any ImageList on text buttons to avoid reserved icon space clipping text
@@ -470,68 +951,82 @@ namespace GTL_Editor
             btnGradient.TextAlign = ContentAlignment.MiddleCenter;
             btnClear.TextAlign = ContentAlignment.MiddleCenter;
 
-            Font btnFont = new Font(this.Font.FontFamily, 9f, FontStyle.Regular);
+            Font btnFont = new Font(this.Font.FontFamily, 9.75f, FontStyle.Regular);
+            Font inputFont = new Font(this.Font.FontFamily, 10f, FontStyle.Regular);
+            Font labelFont = new Font(this.Font.FontFamily, 9.5f, FontStyle.Regular);
+
             btnStretch.Font = btnFont;
             btnResize.Font = btnFont;
             btnCorners.Font = btnFont;
             btnGradient.Font = btnFont;
             btnClear.Font = btnFont;
 
+            txtWidth.Font = inputFont;
+            txtHeight.Font = inputFont;
+            label1.Font = inputFont;
+            cboCornerSize.Font = inputFont;
+            cboBorderSize.Font = inputFont;
+            cboClear.Font = inputFont;
+            label2.Font = labelFont;
+
             int leftColX = 14;
-            int rightButtonWidth = 74;
-            int rightDropdownWidth = 48;
+            int rightButtonWidth = 86;
+            int rightDropdownWidth = 54;
             int rightButtonX = groupBox3.ClientSize.Width - 14 - rightButtonWidth;
             int rightDropdownX = rightButtonX - 6 - rightDropdownWidth;
 
-            int row1Y = 22;
-            int row2Y = 53;
-            int row3Y = 85;
-            int buttonHeight = 28;
+            int row1Y = 24;
+            int row2Y = 62;
+            int row3Y = 100;
+            int buttonHeight = 32;
 
             // Row 1: Dimensions (Left) & Clip (Right)
             txtWidth.Location = new Point(leftColX, row1Y);
-            txtWidth.Size = new Size(46, 24);
+            txtWidth.Size = new Size(52, 26);
 
             label1.Text = "x";
-            label1.Font = btnFont;
             label1.AutoSize = true;
-            label1.Location = new Point(txtWidth.Right + 4, row1Y + (txtWidth.Height - label1.Height) / 2);
+            label1.Location = new Point(txtWidth.Right + 5, row1Y + (txtWidth.Height - label1.Height) / 2);
 
-            txtHeight.Location = new Point(label1.Right + 4, row1Y);
-            txtHeight.Size = new Size(46, 24);
+            txtHeight.Location = new Point(label1.Right + 5, row1Y);
+            txtHeight.Size = new Size(52, 26);
 
             cboCornerSize.Location = new Point(rightDropdownX, row1Y + 1);
-            cboCornerSize.Size = new Size(rightDropdownWidth, 24);
+            cboCornerSize.Size = new Size(rightDropdownWidth, 26);
 
             btnCorners.Location = new Point(rightButtonX, row1Y);
             btnCorners.Size = new Size(rightButtonWidth, buttonHeight);
 
             // Row 2: Size Actions (Left) & Bevel (Right)
             btnStretch.Location = new Point(leftColX, row2Y);
-            btnStretch.Size = new Size(82, buttonHeight);
+            btnStretch.Size = new Size(88, buttonHeight);
 
-            btnResize.Location = new Point(btnStretch.Right + 6, row2Y);
-            btnResize.Size = new Size(82, buttonHeight);
+            btnResize.Location = new Point(btnStretch.Right + 8, row2Y);
+            btnResize.Size = new Size(88, buttonHeight);
 
             cboBorderSize.Location = new Point(rightDropdownX, row2Y + 1);
-            cboBorderSize.Size = new Size(rightDropdownWidth, 24);
+            cboBorderSize.Size = new Size(rightDropdownWidth, 26);
 
             btnGradient.Location = new Point(rightButtonX, row2Y);
             btnGradient.Size = new Size(rightButtonWidth, buttonHeight);
 
             // Row 3: Transparent Color Swatch & Label (Left) & Clear (Right)
-            pctTransparentColor.Location = new Point(leftColX, row3Y + 2);
-            pctTransparentColor.Size = new Size(26, 24);
+            pctTransparentColor.Location = new Point(leftColX, row3Y + 3);
+            pctTransparentColor.Size = new Size(30, 26);
 
-            label2.Font = new Font(this.Font.FontFamily, 8.5f, FontStyle.Regular);
             label2.AutoSize = true;
-            label2.Location = new Point(pctTransparentColor.Right + 6, row3Y + (pctTransparentColor.Height - label2.Height) / 2 + 2);
+            label2.Location = new Point(pctTransparentColor.Right + 8, row3Y + (pctTransparentColor.Height - label2.Height) / 2 + 3);
 
             cboClear.Location = new Point(rightDropdownX, row3Y + 1);
-            cboClear.Size = new Size(rightDropdownWidth, 24);
+            cboClear.Size = new Size(rightDropdownWidth, 26);
 
             btnClear.Location = new Point(rightButtonX, row3Y);
             btnClear.Size = new Size(rightButtonWidth, buttonHeight);
+
+            // Ensure resting dropdowns have zero selection length
+            cboCornerSize.SelectionLength = 0;
+            cboBorderSize.SelectionLength = 0;
+            cboClear.SelectionLength = 0;
         }
 
         private void LayoutTextWorkingArea()
@@ -558,91 +1053,134 @@ namespace GTL_Editor
             btnStore.TextAlign = ContentAlignment.MiddleCenter;
             btnReplace.TextAlign = ContentAlignment.MiddleCenter;
 
-            Font btnFont = new Font(this.Font.FontFamily, 9f, FontStyle.Regular);
+            Font btnFont = new Font(this.Font.FontFamily, 9.75f, FontStyle.Regular);
             btnReset.Font = btnFont;
             btnHideControls.Font = btnFont;
             btnPlace.Font = btnFont;
             btnStore.Font = btnFont;
             btnReplace.Font = btnFont;
 
-            int buttonHeight = 28;
+            int buttonHeight = 32;
 
-            btnReset.Location = new Point(14, 22);
-            btnReset.Size = new Size(74, buttonHeight);
+            btnReset.Location = new Point(14, 24);
+            btnReset.Size = new Size(84, buttonHeight);
 
-            btnAlignLeft.Location = new Point(btnReset.Right + 12, 22);
-            btnAlignLeft.Size = new Size(28, buttonHeight);
+            btnAlignLeft.Location = new Point(btnReset.Right + 12, 24);
+            btnAlignLeft.Size = new Size(32, buttonHeight);
 
-            btnAlignCenter.Location = new Point(btnAlignLeft.Right + 4, 22);
-            btnAlignCenter.Size = new Size(28, buttonHeight);
+            btnAlignCenter.Location = new Point(btnAlignLeft.Right + 6, 24);
+            btnAlignCenter.Size = new Size(32, buttonHeight);
 
-            btnAlignRights.Location = new Point(btnAlignCenter.Right + 4, 22);
-            btnAlignRights.Size = new Size(28, buttonHeight);
+            btnAlignRights.Location = new Point(btnAlignCenter.Right + 6, 24);
+            btnAlignRights.Size = new Size(32, buttonHeight);
 
             int verticalStackX = 14;
-            int startY = btnReset.Bottom + 10;
+            int startY = btnReset.Bottom + 14;
+            int stackBtnW = 32;
+            int stackBtnH = 30;
+            int stackGap = 5;
 
             btnExtendRange.Location = new Point(verticalStackX, startY);
-            btnExtendRange.Size = new Size(28, 28);
+            btnExtendRange.Size = new Size(stackBtnW, stackBtnH);
 
-            btnAlignTop.Location = new Point(verticalStackX, btnExtendRange.Bottom + 4);
-            btnAlignTop.Size = new Size(28, 28);
+            btnAlignTop.Location = new Point(verticalStackX, btnExtendRange.Bottom + stackGap);
+            btnAlignTop.Size = new Size(stackBtnW, stackBtnH);
 
-            btnAlignMiddle.Location = new Point(verticalStackX, btnAlignTop.Bottom + 4);
-            btnAlignMiddle.Size = new Size(28, 28);
+            btnAlignMiddle.Location = new Point(verticalStackX, btnAlignTop.Bottom + stackGap);
+            btnAlignMiddle.Size = new Size(stackBtnW, stackBtnH);
 
-            btnAlignBottom.Location = new Point(verticalStackX, btnAlignMiddle.Bottom + 4);
-            btnAlignBottom.Size = new Size(28, 28);
+            btnAlignBottom.Location = new Point(verticalStackX, btnAlignMiddle.Bottom + stackGap);
+            btnAlignBottom.Size = new Size(stackBtnW, stackBtnH);
 
-            btnReduceRange.Location = new Point(verticalStackX, btnAlignBottom.Bottom + 4);
-            btnReduceRange.Size = new Size(28, 28);
+            btnReduceRange.Location = new Point(verticalStackX, btnAlignBottom.Bottom + stackGap);
+            btnReduceRange.Size = new Size(stackBtnW, stackBtnH);
 
-            vScrollText.Left = btnExtendRange.Right + 8;
+            int stackBottom = btnReduceRange.Bottom;
+
+            vScrollText.Left = verticalStackX + stackBtnW + 8;
             vScrollText.Top = startY;
-            vScrollText.Width = 20;
+            vScrollText.Width = 24;
+            vScrollText.Height = stackBottom - startY;
+            vScrollText.BringToFront();
 
-            txtText.Left = vScrollText.Right + 8;
+            int rightColLeft = vScrollText.Right + 8;
+            int rightColWidth = groupBox1.ClientSize.Width - rightColLeft - 14;
+
+            txtText.Font = new Font(this.Font.FontFamily, 11f, FontStyle.Regular);
+            txtText.Left = rightColLeft;
             txtText.Top = startY;
-            txtText.Width = groupBox1.ClientSize.Width - txtText.Left - 14;
+            txtText.Width = rightColWidth;
 
             lblTileSize.AutoSize = false;
-            lblTileSize.Left = txtText.Left;
-            lblTileSize.Width = txtText.Width;
-            lblTileSize.Height = 22;
-            lblTileSize.Top = txtText.Bottom + 6;
+            lblTileSize.Font = new Font(this.Font.FontFamily, 10f, FontStyle.Regular);
+            lblTileSize.TextAlign = ContentAlignment.MiddleCenter;
+            lblTileSize.Left = rightColLeft;
+            lblTileSize.Top = txtText.Bottom + 12;
+            lblTileSize.Width = rightColWidth;
+            lblTileSize.Height = 26;
 
             lblTextPlacement.AutoSize = false;
-            lblTextPlacement.Left = txtText.Left;
-            lblTextPlacement.Width = txtText.Width;
-            lblTextPlacement.Height = 22;
-            lblTextPlacement.Top = lblTileSize.Bottom + 6;
+            lblTextPlacement.Font = new Font(this.Font.FontFamily, 10f, FontStyle.Regular);
+            lblTextPlacement.TextAlign = ContentAlignment.MiddleCenter;
+            lblTextPlacement.Left = rightColLeft;
+            lblTextPlacement.Top = lblTileSize.Bottom + 10;
+            lblTextPlacement.Width = rightColWidth;
+            lblTextPlacement.Height = 26;
 
-            hScrollText.Left = txtText.Left;
-            hScrollText.Width = txtText.Width;
-            hScrollText.Height = 18;
-            hScrollText.Top = lblTextPlacement.Bottom + 6;
+            hScrollText.Left = rightColLeft;
+            hScrollText.Width = rightColWidth;
+            hScrollText.Height = 24;
+            hScrollText.Top = stackBottom - hScrollText.Height;
+            hScrollText.BringToFront();
 
-            vScrollText.Height = hScrollText.Bottom - vScrollText.Top;
+            int buttonY = stackBottom + 16;
+            int leftMargin = 14;
+            int rightMargin = 14;
+            int totalUsable = groupBox1.ClientSize.Width - leftMargin - rightMargin;
 
-            int buttonY = hScrollText.Bottom + 12;
-            int availableWidth = groupBox1.ClientSize.Width - 28;
-            int btnW = (availableWidth - (3 * 6)) / 4;
+            btnReplace.Margin = new Padding(1);
+            btnReplace.Padding = new Padding(0);
 
-            btnHideControls.Location = new Point(14, buttonY);
-            btnHideControls.Size = new Size(btnW, buttonHeight);
+            if (btnHideControls.Visible)
+            {
+                int btnGap = 6;
+                int hideW = 68;
+                int remaining = totalUsable - hideW - (3 * btnGap);
+                int otherW = remaining / 3;
+                if (otherW < 76) otherW = 76;
 
-            btnPlace.Location = new Point(btnHideControls.Right + 6, buttonY);
-            btnPlace.Size = new Size(btnW, buttonHeight);
+                btnHideControls.Location = new Point(leftMargin, buttonY);
+                btnHideControls.Size = new Size(hideW, buttonHeight);
 
-            btnStore.Location = new Point(btnPlace.Right + 6, buttonY);
-            btnStore.Size = new Size(btnW, buttonHeight);
+                btnPlace.Location = new Point(btnHideControls.Right + btnGap, buttonY);
+                btnPlace.Size = new Size(otherW, buttonHeight);
 
-            btnReplace.Location = new Point(btnStore.Right + 6, buttonY);
-            btnReplace.Size = new Size(btnW, buttonHeight);
+                btnStore.Location = new Point(btnPlace.Right + btnGap, buttonY);
+                btnStore.Size = new Size(otherW, buttonHeight);
 
-            chkIncrement.Font = new Font(this.Font.FontFamily, 8.5f, FontStyle.Regular);
+                btnReplace.Location = new Point(btnStore.Right + btnGap, buttonY);
+                btnReplace.Size = new Size(otherW, buttonHeight);
+            }
+            else
+            {
+                int btnGap = 10;
+                int btnW = (totalUsable - (2 * btnGap)) / 3;
+                if (btnW > 105) btnW = 105;
+                int startX = leftMargin + (totalUsable - (3 * btnW + 2 * btnGap)) / 2;
+
+                btnPlace.Location = new Point(startX, buttonY);
+                btnPlace.Size = new Size(btnW, buttonHeight);
+
+                btnStore.Location = new Point(btnPlace.Right + btnGap, buttonY);
+                btnStore.Size = new Size(btnW, buttonHeight);
+
+                btnReplace.Location = new Point(btnStore.Right + btnGap, buttonY);
+                btnReplace.Size = new Size(btnW, buttonHeight);
+            }
+
+            chkIncrement.Font = new Font(this.Font.FontFamily, 9.75f, FontStyle.Regular);
             chkIncrement.AutoSize = true;
-            chkIncrement.Location = new Point(14, btnHideControls.Bottom + 12);
+            chkIncrement.Location = new Point(16, buttonY + buttonHeight + 14);
 
             LayoutRotationControls();
         }
@@ -653,22 +1191,41 @@ namespace GTL_Editor
             {
                 return;
             }
-            int designTimeBottom = 49;
-            int currentBottom = toolStrip1.Bottom;
-            int deltaY = currentBottom - designTimeBottom;
 
-            if (deltaY > 0)
+            int flushTop = toolStrip1.Bottom + 1;
+
+            groupBox3.Top = flushTop;
+            groupBox2.Top = flushTop;
+
+            if (groupBox1 != null)
             {
-                this.Height += deltaY;
-                groupBox3.Top += deltaY;
-                groupBox2.Top += deltaY;
-                groupBox1.Top += deltaY;
-                groupBox4.Top += deltaY;
+                groupBox1.Location = new Point(groupBox3.Left, groupBox3.Bottom + 8);
+                groupBox1.Width = groupBox3.Width;
+            }
+
+            if (vScrollBar1 != null)
+            {
+                vScrollBar1.Top = toolStrip1.Bottom;
+                if (statusStrip1 != null)
+                {
+                    vScrollBar1.Height = Math.Max(50, statusStrip1.Top - toolStrip1.Bottom);
+                }
+            }
+
+            if (panel1Viewport != null)
+            {
+                panel1Viewport.Top = toolStrip1.Bottom;
+                if (statusStrip1 != null)
+                {
+                    panel1Viewport.Height = Math.Max(50, statusStrip1.Top - toolStrip1.Bottom);
+                }
             }
         }
 
         private void Form1_Resize(object sender, EventArgs e)
         {
+            ApplyToolbarResolutionProfile();
+            LayoutMainFormContainers();
             SyncvScrollBar1();
         }
 
@@ -795,63 +1352,158 @@ namespace GTL_Editor
             }
         }
 
-        private void ModernizeToolbarIcons()
+        private int currentToolbarIconSize = 0;
+
+        private int GetOptimalToolbarIconSize()
         {
-            toolStrip1.ImageScalingSize = new Size(48, 48);
+            Screen screen = Screen.FromControl(this);
+            Rectangle bounds = (screen != null) ? screen.Bounds : Screen.PrimaryScreen.Bounds;
+
+            // Detect 1366x768 and smaller displays (or window height <= 768)
+            if (bounds.Width <= 1366 || bounds.Height <= 768 || (this.WindowState != FormWindowState.Minimized && this.Height <= 768))
+            {
+                return 20; // Compact icon size for 1366x768 and smaller displays
+            }
+            return 48; // Standard larger icon size for higher resolutions
+        }
+
+        private void ApplyToolbarResolutionProfile()
+        {
+            int iconSize = GetOptimalToolbarIconSize();
+            if (iconSize == currentToolbarIconSize)
+            {
+                return;
+            }
+            currentToolbarIconSize = iconSize;
+            ModernizeToolbarIcons(iconSize);
+        }
+
+        private void SetButtonImage(ToolStripButton btn, Bitmap newImg)
+        {
+            if (btn == null) return;
+            Image old = btn.Image;
+            btn.Image = newImg;
+            if (old != null && old != newImg)
+            {
+                old.Dispose();
+            }
+        }
+
+        private void SetMenuItemImage(ToolStripMenuItem mi, Bitmap newImg)
+        {
+            if (mi == null) return;
+            Image old = mi.Image;
+            mi.Image = newImg;
+            if (old != null && old != newImg)
+            {
+                old.Dispose();
+            }
+        }
+
+        private void ModernizeToolbarIcons(int iconSize)
+        {
+            bool isCompact = (iconSize <= 24);
+
+            toolStrip1.ImageScalingSize = new Size(iconSize, iconSize);
+
+            if (isCompact)
+            {
+                toolStrip1.AutoSize = false;
+                toolStrip1.Height = 30;
+                toolStrip1.Padding = new Padding(2, 0, 1, 0);
+            }
+            else
+            {
+                toolStrip1.AutoSize = true;
+                toolStrip1.Padding = new Padding(0);
+            }
+
+            foreach (ToolStripItem item in toolStrip1.Items)
+            {
+                if (isCompact)
+                {
+                    if (item is ToolStripButton)
+                    {
+                        item.Padding = new Padding(1);
+                        item.Margin = new Padding(1, 1, 1, 1);
+                    }
+                    else if (item is ToolStripSeparator)
+                    {
+                        item.Margin = new Padding(2, 2, 2, 2);
+                    }
+                }
+                else
+                {
+                    if (item is ToolStripButton)
+                    {
+                        item.Padding = new Padding(2);
+                        item.Margin = new Padding(1, 2, 1, 2);
+                    }
+                }
+            }
+
+            if (toolFontNameButton != null)
+            {
+                toolFontNameButton.Size = isCompact ? new Size(160, 23) : new Size(200, 25);
+            }
+            if (toolFontSizeButton != null)
+            {
+                toolFontSizeButton.Size = isCompact ? new Size(36, 21) : new Size(40, 23);
+            }
 
             imageList1.Images.Clear();
-            imageList1.ImageSize = new Size(48, 48);
+            imageList1.ImageSize = new Size(iconSize, iconSize);
             
-            imageList1.Images.Add(GetModernGlyph("\uE7AD", 48, Color.Black)); // Index 0: ROTATE_T
-            imageList1.Images.Add(GetModernGlyph("\uE7AD", 48, Color.Gray));  // Index 1: ROTATE_DISABLED
-            imageList1.Images.Add(GetModernGlyph("\uE10F", 48, Color.Black)); // Index 2: WriteText2
-            imageList1.Images.Add(GetModernGlyph("\uE72E", 48, Color.Black)); // Index 3: lock_closed
-            imageList1.Images.Add(GetModernGlyph("\uE785", 48, Color.Black)); // Index 4: lock_closedNO
-            imageList1.Images.Add(GetModernGlyph("\uE8C0", 48, Color.Black)); // Index 5: CreateHalfFromFull
-            imageList1.Images.Add(GetModernGlyph("\uE8C0", 48, Color.Gray));  // Index 6: CreateHalfFromFullNO
-            imageList1.Images.Add(GetModernGlyph("\uE785", 48, Color.Black)); // Index 7: lock_open
-            imageList1.Images.Add(GetModernGlyph("\uE814", 48, Color.Black)); // Index 8: AutoBevelBW
-            imageList1.Images.Add(GetModernGlyph("\uE814", 48, Color.Gray));  // Index 9: AutoBevelBW-A
-            imageList1.Images.Add(GetModernGlyph("\uE72C", 48, Color.Black)); // Index 10: AutoClipBW
-            imageList1.Images.Add(GetModernGlyph("\uE72C", 48, Color.Gray));  // Index 11: AutoClipBW-A
-            imageList1.Images.Add(GetModernGlyph("\uEA39", 48, Color.Gray));  // Index 12: AntiAlias-Off
-            imageList1.Images.Add(GetModernGlyph("\uEA39", 48, Color.DodgerBlue)); // Index 13: antialias-on
+            imageList1.Images.Add(GetModernGlyph("\uE7AD", iconSize, Color.Black)); // Index 0: ROTATE_T
+            imageList1.Images.Add(GetModernGlyph("\uE7AD", iconSize, Color.Gray));  // Index 1: ROTATE_DISABLED
+            imageList1.Images.Add(GetModernGlyph("\uE10F", iconSize, Color.Black)); // Index 2: WriteText2
+            imageList1.Images.Add(GetModernGlyph("\uE72E", iconSize, Color.Black)); // Index 3: lock_closed
+            imageList1.Images.Add(GetModernGlyph("\uE785", iconSize, Color.Black)); // Index 4: lock_closedNO
+            imageList1.Images.Add(GetLowDensityTileGlyph(iconSize, Color.Black)); // Index 5: CreateHalfFromFull
+            imageList1.Images.Add(GetLowDensityTileGlyph(iconSize, Color.Gray));  // Index 6: CreateHalfFromFullNO
+            imageList1.Images.Add(GetModernGlyph("\uE785", iconSize, Color.Black)); // Index 7: lock_open
+            imageList1.Images.Add(GetModernGlyph("\uE814", iconSize, Color.Black)); // Index 8: AutoBevelBW
+            imageList1.Images.Add(GetModernGlyph("\uE814", iconSize, Color.Gray));  // Index 9: AutoBevelBW-A
+            imageList1.Images.Add(GetModernGlyph("\uE72C", iconSize, Color.Black)); // Index 10: AutoClipBW
+            imageList1.Images.Add(GetModernGlyph("\uE72C", iconSize, Color.Gray));  // Index 11: AutoClipBW-A
+            imageList1.Images.Add(GetModernGlyph("\uEA39", iconSize, Color.Gray));  // Index 12: AntiAlias-Off
+            imageList1.Images.Add(GetModernGlyph("\uEA39", iconSize, Color.DodgerBlue)); // Index 13: antialias-on
 
-            openToolStripButton.Image = GetModernGlyph("\uED25", 48, Color.Black);
-            saveToolStripButton.Image = GetModernGlyph("\uE74E", 48, Color.Black);
-            copyToolStripButton.Image = GetModernGlyph("\uE8C8", 48, Color.Black);
-            pasteToolStripButton.Image = GetModernGlyph("\uE77F", 48, Color.Black);
+            SetButtonImage(openToolStripButton, GetModernGlyph("\uED25", iconSize, Color.Black));
+            SetButtonImage(saveToolStripButton, GetModernGlyph("\uE74E", iconSize, Color.Black));
+            SetButtonImage(copyToolStripButton, GetModernGlyph("\uE8C8", iconSize, Color.Black));
+            SetButtonImage(pasteToolStripButton, GetModernGlyph("\uE77F", iconSize, Color.Black));
             
-            toolFontSelectButton.Image = GetModernGlyph("\uE8D2", 48, Color.Black);
-            fontColortoolStripButton1.Image = GetModernGlyph("\uE8D3", 48, Color.Black);
-            toolFontIncreaseButton.Image = GetModernGlyph("\uE8E7", 48, Color.Black);
-            toolFontDecreaseButton.Image = GetModernGlyph("\uE8E8", 48, Color.Black);
-            toolFontBoldButton.Image = GetModernGlyph("\uE19B", 48, Color.Black);
-            toolFontItalicButton.Image = GetModernGlyph("\uE19C", 48, Color.Black);
-            toolAntiAliasButton1.Image = GetModernGlyph("\uEA39", 48, Color.Gray);
+            SetButtonImage(toolFontSelectButton, GetFontDownloadGlyph(iconSize, Color.FromArgb(0x1F, 0x1F, 0x1F)));
+            SetButtonImage(fontColortoolStripButton1, GetFormatColorTextGlyph(iconSize, Color.Black, Color.FromArgb(220, 50, 50)));
+            SetButtonImage(toolFontIncreaseButton, GetTextIncreaseGlyph(iconSize, Color.Black));
+            SetButtonImage(toolFontDecreaseButton, GetTextDecreaseGlyph(iconSize, Color.Black));
+            SetButtonImage(toolFontBoldButton, GetFormatBoldGlyph(iconSize, Color.Black));
+            SetButtonImage(toolFontItalicButton, GetFormatItalicGlyph(iconSize, Color.Black));
+            SetButtonImage(toolAntiAliasButton1, GetModernGlyph("\uEA39", iconSize, Color.Gray));
             
-            placeTexttoolStripButton.Image = GetContextPasteGoGlyph(48);
-            placeTexttoolStripMenuItem.Image = GetContextPasteGoGlyph(48);
-            storetoolStripButton.Image = GetContextCopyGlyph(48);
-            StoreTexttoolStripMenuItem.Image = GetContextCopyGlyph(48);
+            SetButtonImage(placeTexttoolStripButton, GetContextPasteGoGlyph(iconSize));
+            SetMenuItemImage(placeTexttoolStripMenuItem, GetContextPasteGoGlyph(iconSize));
+            SetButtonImage(storetoolStripButton, GetContextCopyGlyph(iconSize));
+            SetMenuItemImage(StoreTexttoolStripMenuItem, GetContextCopyGlyph(iconSize));
             
-            lockCreateHalffromFullStripButton1.Image = GetModernGlyph("\uE8C0", 48, Color.Gray);
-            createTiletoolStripButton.Image = GetModernGlyph("\uE109", 48, Color.Black);
-            createFromPositiontoolStripButton.Image = GetModernGlyph("\uE8A5", 48, Color.Black);
-            replaceTooltoolStripButton1.Image = GetModernGlyph("\uE117", 48, Color.Black);
+            SetButtonImage(lockCreateHalffromFullStripButton1, GetLowDensityTileGlyph(iconSize, Color.Gray));
+            SetButtonImage(createTiletoolStripButton, GetModernGlyph("\uE109", iconSize, Color.Black));
+            SetButtonImage(createFromPositiontoolStripButton, GetModernGlyph("\uE8A5", iconSize, Color.Black));
+            SetButtonImage(replaceTooltoolStripButton1, GetModernGlyph("\uE117", iconSize, Color.Black));
             
-            lockRotationtoolStripButton1.Image = GetModernGlyph("\uE72E", 48, Color.Black);
-            toolRotateLeftButton.Image = GetModernGlyph("\uE7A6", 48, Color.Black);
-            toolRotateRightButton.Image = GetModernGlyph("\uE7A7", 48, Color.Black);
+            SetButtonImage(lockRotationtoolStripButton1, GetModernGlyph("\uE72E", iconSize, Color.Black));
+            SetButtonImage(toolRotateLeftButton, GetModernGlyph("\uE7A6", iconSize, Color.Black));
+            SetButtonImage(toolRotateRightButton, GetModernGlyph("\uE7A7", iconSize, Color.Black));
             
-            lockFliptoolStripButton1.Image = GetModernGlyph("\uE72E", 48, Color.Black);
-            toolFlipHorizontal.Image = GetArrowRangeGlyph(48, Color.Black);
-            toolFlipVertical.Image = GetHeightGlyph(48, Color.Black);
+            SetButtonImage(lockFliptoolStripButton1, GetModernGlyph("\uE72E", iconSize, Color.Black));
+            SetButtonImage(toolFlipHorizontal, GetArrowRangeGlyph(iconSize, Color.Black));
+            SetButtonImage(toolFlipVertical, GetHeightGlyph(iconSize, Color.Black));
             
-            fullTiletoolStripButton1.Image = GetModernGlyph("\uF158", 48, Color.Black);
-            halfTiletoolStripButton1.Image = GetModernGlyph("\uF156", 48, Color.Black);
-            smallTiletoolStripButton2.Image = GetModernGlyph("\uF157", 48, Color.Black);
-            deletetoolStripButton1.Image = GetModernGlyph("\uE74D", 48, Color.Black);
+            SetButtonImage(fullTiletoolStripButton1, GetModernGlyph("\uF158", iconSize, Color.Black));
+            SetButtonImage(halfTiletoolStripButton1, GetModernGlyph("\uF156", iconSize, Color.Black));
+            SetButtonImage(smallTiletoolStripButton2, GetModernGlyph("\uF157", iconSize, Color.Black));
+            SetButtonImage(deletetoolStripButton1, GetModernGlyph("\uE74D", iconSize, Color.Black));
         }
 
         //Constructor
@@ -884,6 +1536,8 @@ namespace GTL_Editor
             panel1.ControlRemoved += (s, e) => UpdateTilePanelBackground();
 
             // Synchronize panel2 (Stored Position Area viewport) and vScrollBar2
+            vScrollBar2.Width = 24;
+            vScrollBar2.BringToFront();
             panel2.BorderStyle = BorderStyle.FixedSingle;
             panel2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             panel2.Width = vScrollBar2.Left - panel2.Left;
@@ -911,6 +1565,10 @@ namespace GTL_Editor
             workingTile.MouseUp += new MouseEventHandler(workingTile_MouseUp);
             workingTile.MouseDoubleClick += new MouseEventHandler(workingTile_MouseDoubleClick);
             this.Resize += new EventHandler(Form1_Resize);
+            if (btnHideControls != null)
+            {
+                btnHideControls.VisibleChanged += (s, e) => LayoutTextWorkingArea();
+            }
         }
         //Methods
         private void Form1_Load(object sender, EventArgs e)                                            
@@ -920,7 +1578,7 @@ namespace GTL_Editor
             EnableDoubleBuffering(panel3);
             EnableDoubleBuffering(workingTile);
 
-            ModernizeToolbarIcons();
+            ApplyToolbarResolutionProfile();
             this.PerformLayout();
             LayoutMainFormContainers();
 
@@ -940,6 +1598,7 @@ namespace GTL_Editor
             this.vScrollBar1.Height = this.statusStrip1.Top - this.toolStrip1.Bottom;
             this.vScrollBar1.Left = this.ClientRectangle.Width - this.vScrollBar1.Width;
             this.vScrollBar1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
+            this.vScrollBar1.BringToFront();
 
             this.panel1Viewport.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             this.panel1Viewport.Top = this.toolStrip1.Bottom;
@@ -2441,13 +3100,113 @@ namespace GTL_Editor
                     paintZoom();
             }
         }
+        private void ReplaceCurrentTile()
+        {
+            if (panel1 == null || panel1.Controls.Count == 0)
+                return;
+
+            if (TileDisplay == null || TileDisplay.CurrentTile < 0 || TileDisplay.CurrentTile >= panel1.Controls.Count)
+                return;
+
+            if (workingTile?.Image == null)
+                return;
+
+            var targetDisplay = panel1.Controls[TileDisplay.CurrentTile] as gtlTileDisplay;
+            if (targetDisplay == null)
+                return;
+
+            if (lblCurrentWorkingTile != null && (lblCurrentWorkingTile.Text == currentworkingtile.HalfTile.ToString() || lblCurrentWorkingTile.Text == "HalfTile"))
+            {
+                // Half Tile Mode
+                Image oldTarget = targetDisplay.halfTile.Image;
+                Image oldBuffer = workingHalfTile.Image;
+
+                Image newHalfImg = (Image)workingTile.Image.Clone();
+                targetDisplay.halfTile.Image = newHalfImg;
+                targetDisplay.halfTile.Width = workingTile.Width;
+                targetDisplay.halfTile.Height = workingTile.Height;
+
+                workingHalfTile.Image = (Image)newHalfImg.Clone();
+                workingHalfTile.Width = workingTile.Width;
+                workingHalfTile.Height = workingTile.Height;
+
+                if (oldTarget != null && oldTarget != newHalfImg && oldTarget != workingHalfTile.Image)
+                {
+                    oldTarget.Dispose();
+                }
+                if (oldBuffer != null && oldBuffer != oldTarget && oldBuffer != newHalfImg && oldBuffer != workingHalfTile.Image)
+                {
+                    oldBuffer.Dispose();
+                }
+            }
+            else
+            {
+                // Full Tile Mode (default)
+                Image oldTargetFull = targetDisplay.fullTile.Image;
+                Image oldBufferFull = workingFullTile.Image;
+
+                Image newFullImg = (Image)workingTile.Image.Clone();
+                targetDisplay.fullTile.Image = newFullImg;
+                targetDisplay.fullTile.Width = workingTile.Width;
+                targetDisplay.fullTile.Height = workingTile.Height;
+
+                workingFullTile.Image = (Image)newFullImg.Clone();
+                workingFullTile.Width = workingTile.Width;
+                workingFullTile.Height = workingTile.Height;
+
+                if (oldTargetFull != null && oldTargetFull != newFullImg && oldTargetFull != workingFullTile.Image)
+                {
+                    oldTargetFull.Dispose();
+                }
+                if (oldBufferFull != null && oldBufferFull != oldTargetFull && oldBufferFull != newFullImg && oldBufferFull != workingFullTile.Image)
+                {
+                    oldBufferFull.Dispose();
+                }
+
+                if (lockCreateHalffromFullStripButton1 != null && lockCreateHalffromFullStripButton1.CheckState == CheckState.Unchecked)
+                {
+                    int halfW = (workingFullTile.Width / 2) + 1;
+                    int halfH = (workingFullTile.Height / 2) + 1;
+                    Image resizedHalf = FixedSize(workingTile.Image, halfW, halfH);
+
+                    Image oldTargetHalf = targetDisplay.halfTile.Image;
+                    Image oldBufferHalf = workingHalfTile.Image;
+
+                    targetDisplay.halfTile.Image = resizedHalf;
+                    targetDisplay.halfTile.Width = halfW;
+                    targetDisplay.halfTile.Height = halfH;
+
+                    workingHalfTile.Image = (Image)resizedHalf.Clone();
+                    workingHalfTile.Width = halfW;
+                    workingHalfTile.Height = halfH;
+
+                    if (oldTargetHalf != null && oldTargetHalf != resizedHalf && oldTargetHalf != workingHalfTile.Image)
+                    {
+                        oldTargetHalf.Dispose();
+                    }
+                    if (oldBufferHalf != null && oldBufferHalf != oldTargetHalf && oldBufferHalf != resizedHalf && oldBufferHalf != workingHalfTile.Image)
+                    {
+                        oldBufferHalf.Dispose();
+                    }
+                }
+            }
+
+            if (workingSmallTile != null && targetDisplay.smallTile != null)
+            {
+                targetDisplay.smallTile.BackColor = workingSmallTile.BackColor;
+            }
+
+            targetDisplay.fullTile.Invalidate();
+            targetDisplay.halfTile.Invalidate();
+            targetDisplay.Invalidate();
+            panel1.Invalidate();
+        }
+
         private void replaceTiletoolStripMenuItem_Click(object sender, EventArgs e)                    
         {
             this.Cursor = Cursors.Default;
             Cursor.Clip = Screen.PrimaryScreen.Bounds;
-            ((PictureBox)((gtlTileDisplay)panel1.Controls[TileDisplay.CurrentTile]).Controls["fullTile"]).Image = workingFullTile.Image;
-            ((PictureBox)((gtlTileDisplay)panel1.Controls[TileDisplay.CurrentTile]).Controls["halfTile"]).Image = workingHalfTile.Image;
-            ((PictureBox)((gtlTileDisplay)panel1.Controls[TileDisplay.CurrentTile]).Controls["smallTile"]).BackColor = workingSmallTile.BackColor;
+            ReplaceCurrentTile();
         }
         private void btnStore_Click(object sender, EventArgs e)                                        
         {
@@ -3024,9 +3783,7 @@ namespace GTL_Editor
             }
             else
             {
-                ((PictureBox)((gtlTileDisplay)panel1.Controls[TileDisplay.CurrentTile]).Controls["fullTile"]).Image = workingFullTile.Image;
-                ((PictureBox)((gtlTileDisplay)panel1.Controls[TileDisplay.CurrentTile]).Controls["halfTile"]).Image = workingHalfTile.Image;
-                ((PictureBox)((gtlTileDisplay)panel1.Controls[TileDisplay.CurrentTile]).Controls["smallTile"]).BackColor = workingSmallTile.BackColor;
+                ReplaceCurrentTile();
             }
         }
         public void CloseCurrentFile()
@@ -3144,24 +3901,95 @@ namespace GTL_Editor
         }
         private void createPNGtoolStripMenuItem_Click(object sender, EventArgs e)                      
         {
-            Bitmap originalBitmap;
-            if (folderBrowserDialog1.ShowDialog() == DialogResult.OK)
+            if (panel1.Controls.Count == 0)
             {
-                Image saveImage;
-                for (int i = 0; i < panel1.Controls.Count; i++)
-                {
-                    originalBitmap = (Bitmap)((gtlTileDisplay)panel1.Controls[i]).fullTile.Image.Clone();
-                    Color backColor = pctTransparentColor.BackColor; // originalBitmap.GetPixel(0, 0);
-                    originalBitmap.MakeTransparent(backColor);
-                    saveImage = (Image)originalBitmap;
+                MessageBox.Show("No tiles are currently loaded to export.", "Export to PNG", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
 
-                    //saveImage = (Image)((gtlTileDisplay)panel1.Controls[i]).fullTile.Image.Clone();
-                    
-                    if (i < 9)
-                        saveImage.Save(folderBrowserDialog1.SelectedPath + "\\" + Path.GetFileNameWithoutExtension(currentfilename) + "_0" + (i + 1).ToString() + "_Full.png", System.Drawing.Imaging.ImageFormat.Png);
-                    else
-                        saveImage.Save(folderBrowserDialog1.SelectedPath + "\\" + Path.GetFileNameWithoutExtension(currentfilename) + "_" + (i + 1).ToString() + "_Full.png", System.Drawing.Imaging.ImageFormat.Png);
+            using (SaveFileDialog sfd = new SaveFileDialog())
+            {
+                sfd.Title = "Export Tiles to PNG (Select Folder & Base Name)...";
+                sfd.Filter = "PNG Image (*.png)|*.png";
+                sfd.OverwritePrompt = false;
+                sfd.AddExtension = true;
+                sfd.DefaultExt = "png";
+
+                string defaultBase = !string.IsNullOrWhiteSpace(currentfilename)
+                    ? Path.GetFileNameWithoutExtension(currentfilename)
+                    : "Tile";
+                sfd.FileName = $"{defaultBase} - 01.png";
+
+                if (sfd.ShowDialog(this) != DialogResult.OK)
+                    return;
+
+                string targetDir = Path.GetDirectoryName(sfd.FileName);
+                if (string.IsNullOrWhiteSpace(targetDir) || !Directory.Exists(targetDir))
+                {
+                    MessageBox.Show("Invalid destination folder selected.", "Export to PNG", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
                 }
+
+                string rawName = Path.GetFileNameWithoutExtension(sfd.FileName);
+
+                // Strip trailing counter suffix from user-entered name (e.g. trailing " - 01", "_01", " 1", "_1")
+                string baseName = Regex.Replace(rawName, @"[\s_-]+0*\d+$", "").Trim();
+                char[] invalidChars = Path.GetInvalidFileNameChars();
+                string safeBaseName = string.Concat(baseName.Split(invalidChars, StringSplitOptions.RemoveEmptyEntries)).Trim();
+                if (string.IsNullOrWhiteSpace(safeBaseName))
+                    safeBaseName = defaultBase;
+
+                int totalTiles = panel1.Controls.Count;
+                int padDigits = Math.Max(2, totalTiles.ToString().Length);
+                string formatString = new string('0', padDigits);
+
+                // Check if matching output files already exist in the target folder
+                bool anyExisting = false;
+                for (int i = 0; i < totalTiles; i++)
+                {
+                    string testPath = Path.Combine(targetDir, $"{safeBaseName} - {(i + 1).ToString(formatString)}.png");
+                    if (File.Exists(testPath))
+                    {
+                        anyExisting = true;
+                        break;
+                    }
+                }
+
+                if (anyExisting)
+                {
+                    DialogResult overwriteChoice = MessageBox.Show(
+                        $"One or more files matching '{safeBaseName} - XX.png' already exist in the selected folder.\n\nDo you want to overwrite them?",
+                        "Confirm Overwrite",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question);
+
+                    if (overwriteChoice != DialogResult.Yes)
+                        return;
+                }
+
+                int exportedCount = 0;
+                Color maskColor = pctTransparentColor.BackColor;
+
+                for (int i = 0; i < totalTiles; i++)
+                {
+                    if (panel1.Controls[i] is gtlTileDisplay display && display.fullTile?.Image != null)
+                    {
+                        using (Bitmap tileBmp = (Bitmap)display.fullTile.Image.Clone())
+                        {
+                            tileBmp.MakeTransparent(maskColor);
+                            string outFileName = $"{safeBaseName} - {(i + 1).ToString(formatString)}.png";
+                            string fullPath = Path.Combine(targetDir, outFileName);
+                            tileBmp.Save(fullPath, ImageFormat.Png);
+                            exportedCount++;
+                        }
+                    }
+                }
+
+                MessageBox.Show(
+                    $"Successfully exported {exportedCount} tile(s) to PNG:\n{targetDir}",
+                    "Export Complete",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
             }
         }
         private void btnAlignLeft_Click(object sender, EventArgs e)                                    
@@ -4764,6 +5592,390 @@ namespace GTL_Editor
                 toolAntiAliasButton1.Image = this.imageList1.Images[13];
             }
             drawText();
+        }
+    }
+
+    public class HighContrastVScrollBar : VScrollBar
+    {
+        private bool isHovered = false;
+        private bool isDragging = false;
+
+        public HighContrastVScrollBar()
+        {
+            DoubleBuffered = true;
+            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+        }
+
+        protected override void OnMouseEnter(EventArgs e)
+        {
+            isHovered = true;
+            Invalidate();
+            base.OnMouseEnter(e);
+        }
+
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            isHovered = false;
+            Invalidate();
+            base.OnMouseLeave(e);
+        }
+
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            isDragging = true;
+            Invalidate();
+            base.OnMouseDown(e);
+        }
+
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
+            isDragging = false;
+            Invalidate();
+            base.OnMouseUp(e);
+        }
+
+        protected override void OnValueChanged(EventArgs e)
+        {
+            base.OnValueChanged(e);
+            Invalidate();
+        }
+
+        protected override void OnScroll(ScrollEventArgs se)
+        {
+            base.OnScroll(se);
+            Invalidate();
+        }
+
+        protected override void OnEnabledChanged(EventArgs e)
+        {
+            base.OnEnabledChanged(e);
+            Invalidate();
+        }
+
+        protected override void OnSizeChanged(EventArgs e)
+        {
+            base.OnSizeChanged(e);
+            Invalidate();
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            base.WndProc(ref m);
+            const int WM_PAINT = 0x000F;
+            const int WM_MOUSEMOVE = 0x0200;
+            const int WM_LBUTTONDOWN = 0x0201;
+            const int WM_LBUTTONUP = 0x0202;
+            const int WM_VSCROLL = 0x0115;
+
+            if (m.Msg == WM_PAINT || m.Msg == WM_MOUSEMOVE || m.Msg == WM_LBUTTONDOWN || m.Msg == WM_LBUTTONUP || m.Msg == WM_VSCROLL)
+            {
+                CustomPaint();
+            }
+        }
+
+        private void CustomPaint()
+        {
+            if (Width <= 0 || Height <= 0 || !IsHandleCreated) return;
+
+            using (Graphics g = Graphics.FromHwnd(Handle))
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.PixelOffsetMode = PixelOffsetMode.Half;
+
+                Rectangle client = ClientRectangle;
+
+                // 1. Distinct track fill
+                Color trackColor = Enabled ? Color.FromArgb(232, 235, 239) : Color.FromArgb(245, 245, 247);
+                using (SolidBrush trackBrush = new SolidBrush(trackColor))
+                {
+                    g.FillRectangle(trackBrush, client);
+                }
+
+                // 2. Arrow buttons
+                int arrowSize = Math.Min(Width, 22);
+                Rectangle topArrowRect = new Rectangle(0, 0, Width, arrowSize);
+                Rectangle bottomArrowRect = new Rectangle(0, Height - arrowSize, Width, arrowSize);
+
+                Color arrowBg = Enabled ? (isHovered ? Color.FromArgb(218, 223, 230) : Color.FromArgb(226, 230, 236)) : Color.FromArgb(245, 245, 247);
+                using (SolidBrush abBrush = new SolidBrush(arrowBg))
+                {
+                    g.FillRectangle(abBrush, topArrowRect);
+                    g.FillRectangle(abBrush, bottomArrowRect);
+                }
+
+                // Arrow glyphs
+                Color glyphColor = Enabled ? Color.FromArgb(50, 54, 62) : Color.FromArgb(170, 175, 182);
+                using (SolidBrush glyphBrush = new SolidBrush(glyphColor))
+                {
+                    float cx = Width / 2f;
+                    float tMargin = arrowSize * 0.32f;
+                    PointF[] topArrow = new PointF[]
+                    {
+                        new PointF(cx, tMargin),
+                        new PointF(cx - (arrowSize * 0.28f), arrowSize - tMargin),
+                        new PointF(cx + (arrowSize * 0.28f), arrowSize - tMargin)
+                    };
+                    g.FillPolygon(glyphBrush, topArrow);
+
+                    float bTop = bottomArrowRect.Top;
+                    PointF[] bottomArrow = new PointF[]
+                    {
+                        new PointF(cx, bTop + arrowSize - tMargin),
+                        new PointF(cx - (arrowSize * 0.28f), bTop + tMargin),
+                        new PointF(cx + (arrowSize * 0.28f), bTop + tMargin)
+                    };
+                    g.FillPolygon(glyphBrush, bottomArrow);
+                }
+
+                // 3. High-contrast Thumb
+                if (Enabled)
+                {
+                    int trackHeight = Height - (2 * arrowSize);
+                    int range = Maximum - Minimum;
+                    if (range > 0 && trackHeight > 0)
+                    {
+                        int minThumb = Math.Min(26, trackHeight);
+                        int thumbHeight = Math.Max(minThumb, (int)((float)LargeChange / (range + LargeChange) * trackHeight));
+                        if (thumbHeight > trackHeight) thumbHeight = trackHeight;
+
+                        int availableTrack = trackHeight - thumbHeight;
+                        int effectiveMax = Math.Max(1, range - LargeChange + 1);
+                        int valClamped = Math.Max(Minimum, Math.Min(effectiveMax + Minimum, Value));
+                        int thumbY = topArrowRect.Bottom + (int)((float)(valClamped - Minimum) / effectiveMax * availableTrack);
+
+                        if (thumbY + thumbHeight > bottomArrowRect.Top) thumbY = bottomArrowRect.Top - thumbHeight;
+                        if (thumbY < topArrowRect.Bottom) thumbY = topArrowRect.Bottom;
+
+                        Rectangle thumbRect = new Rectangle(2, thumbY, Width - 4, thumbHeight);
+                        Color thumbColor = isDragging ? Color.FromArgb(42, 48, 58) : (isHovered ? Color.FromArgb(68, 76, 90) : Color.FromArgb(92, 100, 114));
+
+                        using (SolidBrush thumbBrush = new SolidBrush(thumbColor))
+                        {
+                            g.FillRectangle(thumbBrush, thumbRect);
+                        }
+
+                        // Subtle dark border on thumb
+                        using (Pen thumbBorderPen = new Pen(Color.FromArgb(40, 46, 56), 1f))
+                        {
+                            g.DrawRectangle(thumbBorderPen, thumbRect);
+                        }
+
+                        // Thumb center grip marks (3 horizontal lines)
+                        if (thumbHeight >= 20)
+                        {
+                            using (Pen gripPen = new Pen(Color.FromArgb(218, 224, 234), 1f))
+                            {
+                                int midY = thumbRect.Top + thumbRect.Height / 2;
+                                int gripW = Math.Max(6, thumbRect.Width - 8);
+                                int gripX = thumbRect.Left + (thumbRect.Width - gripW) / 2;
+                                g.DrawLine(gripPen, gripX, midY - 3, gripX + gripW, midY - 3);
+                                g.DrawLine(gripPen, gripX, midY, gripX + gripW, midY);
+                                g.DrawLine(gripPen, gripX, midY + 3, gripX + gripW, midY + 3);
+                            }
+                        }
+                    }
+                }
+
+                // 4. Clear outer border & arrow dividers
+                using (Pen borderPen = new Pen(Color.FromArgb(135, 142, 153), 1))
+                {
+                    g.DrawRectangle(borderPen, 0, 0, Width - 1, Height - 1);
+                    g.DrawLine(borderPen, 0, topArrowRect.Bottom, Width - 1, topArrowRect.Bottom);
+                    g.DrawLine(borderPen, 0, bottomArrowRect.Top, Width - 1, bottomArrowRect.Top);
+                }
+            }
+        }
+    }
+
+    public class HighContrastHScrollBar : HScrollBar
+    {
+        private bool isHovered = false;
+        private bool isDragging = false;
+
+        public HighContrastHScrollBar()
+        {
+            DoubleBuffered = true;
+            SetStyle(ControlStyles.OptimizedDoubleBuffer, true);
+        }
+
+        protected override void OnMouseEnter(EventArgs e)
+        {
+            isHovered = true;
+            Invalidate();
+            base.OnMouseEnter(e);
+        }
+
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            isHovered = false;
+            Invalidate();
+            base.OnMouseLeave(e);
+        }
+
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            isDragging = true;
+            Invalidate();
+            base.OnMouseDown(e);
+        }
+
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
+            isDragging = false;
+            Invalidate();
+            base.OnMouseUp(e);
+        }
+
+        protected override void OnValueChanged(EventArgs e)
+        {
+            base.OnValueChanged(e);
+            Invalidate();
+        }
+
+        protected override void OnScroll(ScrollEventArgs se)
+        {
+            base.OnScroll(se);
+            Invalidate();
+        }
+
+        protected override void OnEnabledChanged(EventArgs e)
+        {
+            base.OnEnabledChanged(e);
+            Invalidate();
+        }
+
+        protected override void OnSizeChanged(EventArgs e)
+        {
+            base.OnSizeChanged(e);
+            Invalidate();
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            base.WndProc(ref m);
+            const int WM_PAINT = 0x000F;
+            const int WM_MOUSEMOVE = 0x0200;
+            const int WM_LBUTTONDOWN = 0x0201;
+            const int WM_LBUTTONUP = 0x0202;
+            const int WM_HSCROLL = 0x0114;
+
+            if (m.Msg == WM_PAINT || m.Msg == WM_MOUSEMOVE || m.Msg == WM_LBUTTONDOWN || m.Msg == WM_LBUTTONUP || m.Msg == WM_HSCROLL)
+            {
+                CustomPaint();
+            }
+        }
+
+        private void CustomPaint()
+        {
+            if (Width <= 0 || Height <= 0 || !IsHandleCreated) return;
+
+            using (Graphics g = Graphics.FromHwnd(Handle))
+            {
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.PixelOffsetMode = PixelOffsetMode.Half;
+
+                Rectangle client = ClientRectangle;
+
+                // 1. Distinct track fill
+                Color trackColor = Enabled ? Color.FromArgb(232, 235, 239) : Color.FromArgb(245, 245, 247);
+                using (SolidBrush trackBrush = new SolidBrush(trackColor))
+                {
+                    g.FillRectangle(trackBrush, client);
+                }
+
+                // 2. Arrow buttons
+                int arrowSize = Math.Min(Height, 22);
+                Rectangle leftArrowRect = new Rectangle(0, 0, arrowSize, Height);
+                Rectangle rightArrowRect = new Rectangle(Width - arrowSize, 0, arrowSize, Height);
+
+                Color arrowBg = Enabled ? (isHovered ? Color.FromArgb(218, 223, 230) : Color.FromArgb(226, 230, 236)) : Color.FromArgb(245, 245, 247);
+                using (SolidBrush abBrush = new SolidBrush(arrowBg))
+                {
+                    g.FillRectangle(abBrush, leftArrowRect);
+                    g.FillRectangle(abBrush, rightArrowRect);
+                }
+
+                // Arrow glyphs
+                Color glyphColor = Enabled ? Color.FromArgb(50, 54, 62) : Color.FromArgb(170, 175, 182);
+                using (SolidBrush glyphBrush = new SolidBrush(glyphColor))
+                {
+                    float cy = Height / 2f;
+                    float lMargin = arrowSize * 0.32f;
+                    PointF[] leftArrow = new PointF[]
+                    {
+                        new PointF(lMargin, cy),
+                        new PointF(arrowSize - lMargin, cy - (arrowSize * 0.28f)),
+                        new PointF(arrowSize - lMargin, cy + (arrowSize * 0.28f))
+                    };
+                    g.FillPolygon(glyphBrush, leftArrow);
+
+                    float rLeft = rightArrowRect.Left;
+                    PointF[] rightArrow = new PointF[]
+                    {
+                        new PointF(rLeft + arrowSize - lMargin, cy),
+                        new PointF(rLeft + lMargin, cy - (arrowSize * 0.28f)),
+                        new PointF(rLeft + lMargin, cy + (arrowSize * 0.28f))
+                    };
+                    g.FillPolygon(glyphBrush, rightArrow);
+                }
+
+                // 3. High-contrast Thumb
+                if (Enabled)
+                {
+                    int trackWidth = Width - (2 * arrowSize);
+                    int range = Maximum - Minimum;
+                    if (range > 0 && trackWidth > 0)
+                    {
+                        int minThumb = Math.Min(28, trackWidth);
+                        int thumbWidth = Math.Max(minThumb, (int)((float)LargeChange / (range + LargeChange) * trackWidth));
+                        if (thumbWidth > trackWidth) thumbWidth = trackWidth;
+
+                        int availableTrack = trackWidth - thumbWidth;
+                        int effectiveMax = Math.Max(1, range - LargeChange + 1);
+                        int valClamped = Math.Max(Minimum, Math.Min(effectiveMax + Minimum, Value));
+                        int thumbX = leftArrowRect.Right + (int)((float)(valClamped - Minimum) / effectiveMax * availableTrack);
+
+                        if (thumbX + thumbWidth > rightArrowRect.Left) thumbX = rightArrowRect.Left - thumbWidth;
+                        if (thumbX < leftArrowRect.Right) thumbX = leftArrowRect.Right;
+
+                        Rectangle thumbRect = new Rectangle(thumbX, 2, thumbWidth, Height - 4);
+                        Color thumbColor = isDragging ? Color.FromArgb(42, 48, 58) : (isHovered ? Color.FromArgb(68, 76, 90) : Color.FromArgb(92, 100, 114));
+
+                        using (SolidBrush thumbBrush = new SolidBrush(thumbColor))
+                        {
+                            g.FillRectangle(thumbBrush, thumbRect);
+                        }
+
+                        // Subtle dark border on thumb
+                        using (Pen thumbBorderPen = new Pen(Color.FromArgb(40, 46, 56), 1f))
+                        {
+                            g.DrawRectangle(thumbBorderPen, thumbRect);
+                        }
+
+                        // Thumb center grip marks (3 vertical lines)
+                        if (thumbWidth >= 20)
+                        {
+                            using (Pen gripPen = new Pen(Color.FromArgb(218, 224, 234), 1f))
+                            {
+                                int midX = thumbRect.Left + thumbRect.Width / 2;
+                                int gripH = Math.Max(6, thumbRect.Height - 8);
+                                int gripY = thumbRect.Top + (thumbRect.Height - gripH) / 2;
+                                g.DrawLine(gripPen, midX - 3, gripY, midX - 3, gripY + gripH);
+                                g.DrawLine(gripPen, midX, gripY, midX, gripY + gripH);
+                                g.DrawLine(gripPen, midX + 3, gripY, midX + 3, gripY + gripH);
+                            }
+                        }
+                    }
+                }
+
+                // 4. Clear outer border & arrow dividers
+                using (Pen borderPen = new Pen(Color.FromArgb(135, 142, 153), 1))
+                {
+                    g.DrawRectangle(borderPen, 0, 0, Width - 1, Height - 1);
+                    g.DrawLine(borderPen, leftArrowRect.Right, 0, leftArrowRect.Right, Height - 1);
+                    g.DrawLine(borderPen, rightArrowRect.Left, 0, rightArrowRect.Left, Height - 1);
+                }
+            }
         }
     }
 }

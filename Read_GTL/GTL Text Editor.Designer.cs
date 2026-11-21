@@ -141,11 +141,11 @@ namespace GTL_Editor
             this.btnHideControls = new System.Windows.Forms.Button();
             this.btnStore = new System.Windows.Forms.Button();
             this.btnPlace = new System.Windows.Forms.Button();
-            this.hScrollRotate = new System.Windows.Forms.HScrollBar();
+            this.hScrollRotate = new GTL_Editor.HighContrastHScrollBar();
             this.lblTileSize = new System.Windows.Forms.Label();
             this.lblTextPlacement = new System.Windows.Forms.Label();
-            this.vScrollText = new System.Windows.Forms.VScrollBar();
-            this.hScrollText = new System.Windows.Forms.HScrollBar();
+            this.vScrollText = new GTL_Editor.HighContrastVScrollBar();
+            this.hScrollText = new GTL_Editor.HighContrastHScrollBar();
             this.txtRotate = new System.Windows.Forms.TextBox();
             this.fontDialog1 = new System.Windows.Forms.FontDialog();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
@@ -155,10 +155,10 @@ namespace GTL_Editor
             this.btnBumpUp = new System.Windows.Forms.Button();
             this.workingTile = new System.Windows.Forms.PictureBox();
             this.groupBox4 = new System.Windows.Forms.GroupBox();
-            this.vScrollBar2 = new System.Windows.Forms.VScrollBar();
+            this.vScrollBar2 = new GTL_Editor.HighContrastVScrollBar();
             this.panel2 = new System.Windows.Forms.Panel();
             this.panel3 = new System.Windows.Forms.Panel();
-            this.vScrollBar1 = new System.Windows.Forms.VScrollBar();
+            this.vScrollBar1 = new GTL_Editor.HighContrastVScrollBar();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.label2 = new System.Windows.Forms.Label();
@@ -319,7 +319,7 @@ namespace GTL_Editor
             this.createPNGtoolStripMenuItem.Enabled = false;
             this.createPNGtoolStripMenuItem.Name = "createPNGtoolStripMenuItem";
             this.createPNGtoolStripMenuItem.Size = new System.Drawing.Size(191, 22);
-            this.createPNGtoolStripMenuItem.Text = "Create PNG files";
+            this.createPNGtoolStripMenuItem.Text = "Export to PNG...";
             this.createPNGtoolStripMenuItem.Click += new System.EventHandler(this.createPNGtoolStripMenuItem_Click);
             // 
             // toolStripSeparator12
@@ -1121,12 +1121,12 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpKeyword(this.groupBox1, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.groupBox1, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.groupBox1, "Text Area");
-            this.groupBox1.Location = new System.Drawing.Point(7, 177);
+            this.groupBox1.Location = new System.Drawing.Point(7, 214);
             this.groupBox1.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Padding = new System.Windows.Forms.Padding(4);
             this.helpProvider1.SetShowHelp(this.groupBox1, true);
-            this.groupBox1.Size = new System.Drawing.Size(375, 573);
+            this.groupBox1.Size = new System.Drawing.Size(390, 536);
             this.groupBox1.TabIndex = 12;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Text Working Area";
@@ -1139,11 +1139,11 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpKeyword(this.btnReplace, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnReplace, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.btnReplace, "Text Area");
-            this.btnReplace.Location = new System.Drawing.Point(259, 155);
+            this.btnReplace.Location = new System.Drawing.Point(278, 256);
             this.btnReplace.Margin = new System.Windows.Forms.Padding(1);
             this.btnReplace.Name = "btnReplace";
             this.helpProvider1.SetShowHelp(this.btnReplace, true);
-            this.btnReplace.Size = new System.Drawing.Size(82, 28);
+            this.btnReplace.Size = new System.Drawing.Size(80, 32);
             this.btnReplace.TabIndex = 26;
             this.btnReplace.Text = "Replace";
             this.btnReplace.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -1173,16 +1173,16 @@ namespace GTL_Editor
             // btnReset
             // 
             this.btnReset.FlatAppearance.BorderColor = System.Drawing.SystemColors.Desktop;
-            this.btnReset.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnReset.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnReset.ForeColor = System.Drawing.Color.Black;
             this.helpProvider1.SetHelpKeyword(this.btnReset, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnReset, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.btnReset, "Text Area");
-            this.btnReset.Location = new System.Drawing.Point(45, 16);
+            this.btnReset.Location = new System.Drawing.Point(14, 24);
             this.btnReset.Margin = new System.Windows.Forms.Padding(1);
             this.btnReset.Name = "btnReset";
             this.helpProvider1.SetShowHelp(this.btnReset, true);
-            this.btnReset.Size = new System.Drawing.Size(74, 28);
+            this.btnReset.Size = new System.Drawing.Size(84, 32);
             this.btnReset.TabIndex = 25;
             this.btnReset.Text = "Reset";
             this.btnReset.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -1200,11 +1200,11 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpString(this.btnAlignBottom, "Text Area");
             this.btnAlignBottom.ImageIndex = 5;
             this.btnAlignBottom.ImageList = this.imageList4;
-            this.btnAlignBottom.Location = new System.Drawing.Point(45, 129);
+            this.btnAlignBottom.Location = new System.Drawing.Point(14, 175);
             this.btnAlignBottom.Margin = new System.Windows.Forms.Padding(4);
             this.btnAlignBottom.Name = "btnAlignBottom";
             this.helpProvider1.SetShowHelp(this.btnAlignBottom, true);
-            this.btnAlignBottom.Size = new System.Drawing.Size(24, 22);
+            this.btnAlignBottom.Size = new System.Drawing.Size(32, 30);
             this.btnAlignBottom.TabIndex = 24;
             this.btnAlignBottom.Tag = "";
             this.toolTip1.SetToolTip(this.btnAlignBottom, "Align Bottom");
@@ -1234,11 +1234,11 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpString(this.btnAlignMiddle, "Text Area");
             this.btnAlignMiddle.ImageIndex = 4;
             this.btnAlignMiddle.ImageList = this.imageList4;
-            this.btnAlignMiddle.Location = new System.Drawing.Point(45, 102);
+            this.btnAlignMiddle.Location = new System.Drawing.Point(14, 140);
             this.btnAlignMiddle.Margin = new System.Windows.Forms.Padding(4);
             this.btnAlignMiddle.Name = "btnAlignMiddle";
             this.helpProvider1.SetShowHelp(this.btnAlignMiddle, true);
-            this.btnAlignMiddle.Size = new System.Drawing.Size(24, 22);
+            this.btnAlignMiddle.Size = new System.Drawing.Size(32, 30);
             this.btnAlignMiddle.TabIndex = 23;
             this.btnAlignMiddle.Tag = "";
             this.btnAlignMiddle.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -1256,11 +1256,11 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpString(this.btnAlignTop, "Text Area");
             this.btnAlignTop.ImageIndex = 3;
             this.btnAlignTop.ImageList = this.imageList4;
-            this.btnAlignTop.Location = new System.Drawing.Point(45, 75);
+            this.btnAlignTop.Location = new System.Drawing.Point(14, 105);
             this.btnAlignTop.Margin = new System.Windows.Forms.Padding(4);
             this.btnAlignTop.Name = "btnAlignTop";
             this.helpProvider1.SetShowHelp(this.btnAlignTop, true);
-            this.btnAlignTop.Size = new System.Drawing.Size(24, 22);
+            this.btnAlignTop.Size = new System.Drawing.Size(32, 30);
             this.btnAlignTop.TabIndex = 22;
             this.btnAlignTop.Tag = "";
             this.btnAlignTop.TextAlign = System.Drawing.ContentAlignment.TopLeft;
@@ -1278,11 +1278,11 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpString(this.btnAlignRights, "Text Area");
             this.btnAlignRights.ImageIndex = 2;
             this.btnAlignRights.ImageList = this.imageList4;
-            this.btnAlignRights.Location = new System.Drawing.Point(300, 21);
+            this.btnAlignRights.Location = new System.Drawing.Point(186, 24);
             this.btnAlignRights.Margin = new System.Windows.Forms.Padding(4);
             this.btnAlignRights.Name = "btnAlignRights";
             this.helpProvider1.SetShowHelp(this.btnAlignRights, true);
-            this.btnAlignRights.Size = new System.Drawing.Size(24, 22);
+            this.btnAlignRights.Size = new System.Drawing.Size(32, 32);
             this.btnAlignRights.TabIndex = 21;
             this.btnAlignRights.Tag = "";
             this.toolTip1.SetToolTip(this.btnAlignRights, "Align Right");
@@ -1299,11 +1299,11 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpString(this.btnAlignCenter, "Text Area");
             this.btnAlignCenter.ImageIndex = 1;
             this.btnAlignCenter.ImageList = this.imageList4;
-            this.btnAlignCenter.Location = new System.Drawing.Point(208, 21);
+            this.btnAlignCenter.Location = new System.Drawing.Point(148, 24);
             this.btnAlignCenter.Margin = new System.Windows.Forms.Padding(4);
             this.btnAlignCenter.Name = "btnAlignCenter";
             this.helpProvider1.SetShowHelp(this.btnAlignCenter, true);
-            this.btnAlignCenter.Size = new System.Drawing.Size(24, 22);
+            this.btnAlignCenter.Size = new System.Drawing.Size(32, 32);
             this.btnAlignCenter.TabIndex = 20;
             this.btnAlignCenter.Tag = "";
             this.toolTip1.SetToolTip(this.btnAlignCenter, "Align Center");
@@ -1320,11 +1320,11 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpString(this.btnAlignLeft, "Text Area");
             this.btnAlignLeft.ImageIndex = 0;
             this.btnAlignLeft.ImageList = this.imageList4;
-            this.btnAlignLeft.Location = new System.Drawing.Point(118, 21);
+            this.btnAlignLeft.Location = new System.Drawing.Point(110, 24);
             this.btnAlignLeft.Margin = new System.Windows.Forms.Padding(0);
             this.btnAlignLeft.Name = "btnAlignLeft";
             this.helpProvider1.SetShowHelp(this.btnAlignLeft, true);
-            this.btnAlignLeft.Size = new System.Drawing.Size(24, 22);
+            this.btnAlignLeft.Size = new System.Drawing.Size(32, 32);
             this.btnAlignLeft.TabIndex = 19;
             this.btnAlignLeft.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             this.toolTip1.SetToolTip(this.btnAlignLeft, "Align Left");
@@ -1333,15 +1333,15 @@ namespace GTL_Editor
             // 
             // txtText
             // 
-            this.txtText.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtText.Font = new System.Drawing.Font("Microsoft Sans Serif", 11F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.helpProvider1.SetHelpKeyword(this.txtText, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.txtText, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.txtText, "Text Area");
-            this.txtText.Location = new System.Drawing.Point(117, 74);
+            this.txtText.Location = new System.Drawing.Point(84, 70);
             this.txtText.Margin = new System.Windows.Forms.Padding(4);
             this.txtText.Name = "txtText";
             this.helpProvider1.SetShowHelp(this.txtText, true);
-            this.txtText.Size = new System.Drawing.Size(205, 20);
+            this.txtText.Size = new System.Drawing.Size(292, 24);
             this.txtText.TabIndex = 0;
             this.txtText.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.txtText.Click += new System.EventHandler(this.txtText_Click);
@@ -1363,11 +1363,11 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpString(this.btnReduceRange, "Text Area");
             this.btnReduceRange.ImageIndex = 7;
             this.btnReduceRange.ImageList = this.imageList4;
-            this.btnReduceRange.Location = new System.Drawing.Point(86, 45);
+            this.btnReduceRange.Location = new System.Drawing.Point(14, 210);
             this.btnReduceRange.Margin = new System.Windows.Forms.Padding(4);
             this.btnReduceRange.Name = "btnReduceRange";
             this.helpProvider1.SetShowHelp(this.btnReduceRange, true);
-            this.btnReduceRange.Size = new System.Drawing.Size(24, 22);
+            this.btnReduceRange.Size = new System.Drawing.Size(32, 30);
             this.btnReduceRange.TabIndex = 18;
             this.btnReduceRange.TextAlign = System.Drawing.ContentAlignment.TopLeft;
             this.toolTip1.SetToolTip(this.btnReduceRange, "Compress Text Range");
@@ -1378,15 +1378,15 @@ namespace GTL_Editor
             // 
             this.chkIncrement.AutoSize = true;
             this.chkIncrement.CheckAlign = System.Drawing.ContentAlignment.BottomRight;
-            this.chkIncrement.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.chkIncrement.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.helpProvider1.SetHelpKeyword(this.chkIncrement, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.chkIncrement, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.chkIncrement, "Text Area");
-            this.chkIncrement.Location = new System.Drawing.Point(78, 186);
+            this.chkIncrement.Location = new System.Drawing.Point(16, 304);
             this.chkIncrement.Margin = new System.Windows.Forms.Padding(4);
             this.chkIncrement.Name = "chkIncrement";
             this.helpProvider1.SetShowHelp(this.chkIncrement, true);
-            this.chkIncrement.Size = new System.Drawing.Size(184, 17);
+            this.chkIncrement.Size = new System.Drawing.Size(240, 20);
             this.chkIncrement.TabIndex = 17;
             this.chkIncrement.Text = "Increment (#1/A = 1/A, 2/A, 3/A...)";
             this.chkIncrement.TextAlign = System.Drawing.ContentAlignment.TopCenter;
@@ -1419,11 +1419,11 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpString(this.btnExtendRange, "Text Area");
             this.btnExtendRange.ImageIndex = 6;
             this.btnExtendRange.ImageList = this.imageList4;
-            this.btnExtendRange.Location = new System.Drawing.Point(45, 45);
+            this.btnExtendRange.Location = new System.Drawing.Point(14, 70);
             this.btnExtendRange.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnExtendRange.Name = "btnExtendRange";
             this.helpProvider1.SetShowHelp(this.btnExtendRange, true);
-            this.btnExtendRange.Size = new System.Drawing.Size(24, 22);
+            this.btnExtendRange.Size = new System.Drawing.Size(32, 30);
             this.btnExtendRange.TabIndex = 15;
             this.btnExtendRange.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             this.toolTip1.SetToolTip(this.btnExtendRange, "Expand Text Range");
@@ -1436,11 +1436,11 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpKeyword(this.btnRotate90, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnRotate90, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.btnRotate90, "Text Area");
-            this.btnRotate90.Location = new System.Drawing.Point(117, 278);
+            this.btnRotate90.Location = new System.Drawing.Point(72, 428);
             this.btnRotate90.Margin = new System.Windows.Forms.Padding(4);
             this.btnRotate90.Name = "btnRotate90";
             this.helpProvider1.SetShowHelp(this.btnRotate90, true);
-            this.btnRotate90.Size = new System.Drawing.Size(34, 46);
+            this.btnRotate90.Size = new System.Drawing.Size(38, 46);
             this.btnRotate90.TabIndex = 14;
             this.toolTip1.SetToolTip(this.btnRotate90, "Rotation Preset");
             this.btnRotate90.UseVisualStyleBackColor = true;
@@ -1452,11 +1452,11 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpKeyword(this.btnRotate180, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnRotate180, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.btnRotate180, "Text Area");
-            this.btnRotate180.Location = new System.Drawing.Point(68, 253);
+            this.btnRotate180.Location = new System.Drawing.Point(14, 392);
             this.btnRotate180.Margin = new System.Windows.Forms.Padding(4);
             this.btnRotate180.Name = "btnRotate180";
             this.helpProvider1.SetShowHelp(this.btnRotate180, true);
-            this.btnRotate180.Size = new System.Drawing.Size(54, 28);
+            this.btnRotate180.Size = new System.Drawing.Size(54, 32);
             this.btnRotate180.TabIndex = 13;
             this.toolTip1.SetToolTip(this.btnRotate180, "Rotation Preset");
             this.btnRotate180.UseVisualStyleBackColor = true;
@@ -1468,11 +1468,11 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpKeyword(this.btnRotateminus90, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnRotateminus90, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.btnRotateminus90, "Text Area");
-            this.btnRotateminus90.Location = new System.Drawing.Point(117, 209);
+            this.btnRotateminus90.Location = new System.Drawing.Point(72, 342);
             this.btnRotateminus90.Margin = new System.Windows.Forms.Padding(4);
             this.btnRotateminus90.Name = "btnRotateminus90";
             this.helpProvider1.SetShowHelp(this.btnRotateminus90, true);
-            this.btnRotateminus90.Size = new System.Drawing.Size(34, 46);
+            this.btnRotateminus90.Size = new System.Drawing.Size(38, 46);
             this.btnRotateminus90.TabIndex = 12;
             this.toolTip1.SetToolTip(this.btnRotateminus90, "Rotation Preset");
             this.btnRotateminus90.UseVisualStyleBackColor = true;
@@ -1484,11 +1484,11 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpKeyword(this.btnRotate0, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnRotate0, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.btnRotate0, "Text Area");
-            this.btnRotate0.Location = new System.Drawing.Point(145, 253);
+            this.btnRotate0.Location = new System.Drawing.Point(114, 392);
             this.btnRotate0.Margin = new System.Windows.Forms.Padding(4);
             this.btnRotate0.Name = "btnRotate0";
             this.helpProvider1.SetShowHelp(this.btnRotate0, true);
-            this.btnRotate0.Size = new System.Drawing.Size(54, 28);
+            this.btnRotate0.Size = new System.Drawing.Size(54, 32);
             this.btnRotate0.TabIndex = 11;
             this.toolTip1.SetToolTip(this.btnRotate0, "Rotation Preset");
             this.btnRotate0.UseVisualStyleBackColor = true;
@@ -1500,11 +1500,11 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpNavigator(this.pctRotate, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.pctRotate, "Text Area");
             this.pctRotate.Image = ((System.Drawing.Image)(resources.GetObject("pctRotate.Image")));
-            this.pctRotate.Location = new System.Drawing.Point(206, 210);
+            this.pctRotate.Location = new System.Drawing.Point(240, 342);
             this.pctRotate.Margin = new System.Windows.Forms.Padding(4);
             this.pctRotate.Name = "pctRotate";
             this.helpProvider1.SetShowHelp(this.pctRotate, true);
-            this.pctRotate.Size = new System.Drawing.Size(116, 94);
+            this.pctRotate.Size = new System.Drawing.Size(80, 80);
             this.pctRotate.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
             this.pctRotate.TabIndex = 5;
             this.pctRotate.TabStop = false;
@@ -1514,15 +1514,15 @@ namespace GTL_Editor
             // btnHideControls
             // 
             this.btnHideControls.BackColor = System.Drawing.SystemColors.ButtonFace;
-            this.btnHideControls.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnHideControls.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.helpProvider1.SetHelpKeyword(this.btnHideControls, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnHideControls, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.btnHideControls, "Text Area");
-            this.btnHideControls.Location = new System.Drawing.Point(44, 156);
+            this.btnHideControls.Location = new System.Drawing.Point(14, 256);
             this.btnHideControls.Margin = new System.Windows.Forms.Padding(4);
             this.btnHideControls.Name = "btnHideControls";
             this.helpProvider1.SetShowHelp(this.btnHideControls, true);
-            this.btnHideControls.Size = new System.Drawing.Size(68, 27);
+            this.btnHideControls.Size = new System.Drawing.Size(80, 32);
             this.btnHideControls.TabIndex = 9;
             this.btnHideControls.Text = "Hide";
             this.btnHideControls.UseVisualStyleBackColor = false;
@@ -1531,15 +1531,15 @@ namespace GTL_Editor
             // 
             // btnStore
             // 
-            this.btnStore.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnStore.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.helpProvider1.SetHelpKeyword(this.btnStore, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnStore, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.btnStore, "Text Area");
-            this.btnStore.Location = new System.Drawing.Point(188, 155);
+            this.btnStore.Location = new System.Drawing.Point(190, 256);
             this.btnStore.Margin = new System.Windows.Forms.Padding(4);
             this.btnStore.Name = "btnStore";
             this.helpProvider1.SetShowHelp(this.btnStore, true);
-            this.btnStore.Size = new System.Drawing.Size(65, 26);
+            this.btnStore.Size = new System.Drawing.Size(80, 32);
             this.btnStore.TabIndex = 8;
             this.btnStore.Text = "Store";
             this.toolTip1.SetToolTip(this.btnStore, "Store text position data");
@@ -1549,15 +1549,15 @@ namespace GTL_Editor
             // btnPlace
             // 
             this.btnPlace.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.btnPlace.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnPlace.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.helpProvider1.SetHelpKeyword(this.btnPlace, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.btnPlace, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.btnPlace, "Text Area");
-            this.btnPlace.Location = new System.Drawing.Point(117, 155);
+            this.btnPlace.Location = new System.Drawing.Point(102, 256);
             this.btnPlace.Margin = new System.Windows.Forms.Padding(1);
             this.btnPlace.Name = "btnPlace";
             this.helpProvider1.SetShowHelp(this.btnPlace, true);
-            this.btnPlace.Size = new System.Drawing.Size(82, 28);
+            this.btnPlace.Size = new System.Drawing.Size(80, 32);
             this.btnPlace.TabIndex = 7;
             this.btnPlace.Text = "Place";
             this.btnPlace.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -1571,11 +1571,11 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpNavigator(this.hScrollRotate, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.hScrollRotate, "Text Area");
             this.hScrollRotate.LargeChange = 1;
-            this.hScrollRotate.Location = new System.Drawing.Point(221, 310);
+            this.hScrollRotate.Location = new System.Drawing.Point(242, 436);
             this.hScrollRotate.Maximum = 360;
             this.hScrollRotate.Name = "hScrollRotate";
             this.helpProvider1.SetShowHelp(this.hScrollRotate, true);
-            this.hScrollRotate.Size = new System.Drawing.Size(103, 21);
+            this.hScrollRotate.Size = new System.Drawing.Size(134, 24);
             this.hScrollRotate.TabIndex = 6;
             this.hScrollRotate.Scroll += new System.Windows.Forms.ScrollEventHandler(this.hScrollRotate_Scroll);
             // 
@@ -1587,12 +1587,12 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpKeyword(this.lblTileSize, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.lblTileSize, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.lblTileSize, "Text Area");
-            this.lblTileSize.Location = new System.Drawing.Point(118, 102);
+            this.lblTileSize.Location = new System.Drawing.Point(84, 112);
             this.lblTileSize.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblTileSize.MinimumSize = new System.Drawing.Size(205, 0);
             this.lblTileSize.Name = "lblTileSize";
             this.helpProvider1.SetShowHelp(this.lblTileSize, true);
-            this.lblTileSize.Size = new System.Drawing.Size(205, 18);
+            this.lblTileSize.Size = new System.Drawing.Size(292, 26);
             this.lblTileSize.TabIndex = 4;
             this.lblTileSize.Text = "0,0";
             this.lblTileSize.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -1608,12 +1608,12 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpKeyword(this.lblTextPlacement, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.lblTextPlacement, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.lblTextPlacement, "Text Area");
-            this.lblTextPlacement.Location = new System.Drawing.Point(118, 129);
+            this.lblTextPlacement.Location = new System.Drawing.Point(84, 156);
             this.lblTextPlacement.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblTextPlacement.MinimumSize = new System.Drawing.Size(205, 0);
             this.lblTextPlacement.Name = "lblTextPlacement";
             this.helpProvider1.SetShowHelp(this.lblTextPlacement, true);
-            this.lblTextPlacement.Size = new System.Drawing.Size(205, 18);
+            this.lblTextPlacement.Size = new System.Drawing.Size(292, 26);
             this.lblTextPlacement.TabIndex = 3;
             this.lblTextPlacement.Text = "0,0";
             this.lblTextPlacement.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -1627,11 +1627,11 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpNavigator(this.vScrollText, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.vScrollText, "Text Area");
             this.vScrollText.LargeChange = 1;
-            this.vScrollText.Location = new System.Drawing.Point(86, 74);
+            this.vScrollText.Location = new System.Drawing.Point(54, 70);
             this.vScrollText.Maximum = 0;
             this.vScrollText.Name = "vScrollText";
             this.helpProvider1.SetShowHelp(this.vScrollText, true);
-            this.vScrollText.Size = new System.Drawing.Size(18, 78);
+            this.vScrollText.Size = new System.Drawing.Size(24, 170);
             this.vScrollText.TabIndex = 2;
             this.toolTip1.SetToolTip(this.vScrollText, "Vertical Text Scroll Bar");
             this.vScrollText.Scroll += new System.Windows.Forms.ScrollEventHandler(this.vScrollText_Scroll);
@@ -1642,27 +1642,27 @@ namespace GTL_Editor
             this.helpProvider1.SetHelpNavigator(this.hScrollText, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.hScrollText, "Text Area");
             this.hScrollText.LargeChange = 1;
-            this.hScrollText.Location = new System.Drawing.Point(117, 45);
+            this.hScrollText.Location = new System.Drawing.Point(86, 216);
             this.hScrollText.Maximum = 0;
             this.hScrollText.Name = "hScrollText";
             this.helpProvider1.SetShowHelp(this.hScrollText, true);
-            this.hScrollText.Size = new System.Drawing.Size(207, 18);
+            this.hScrollText.Size = new System.Drawing.Size(290, 24);
             this.hScrollText.TabIndex = 1;
             this.toolTip1.SetToolTip(this.hScrollText, "Horizontal Text Scroll Bar");
             this.hScrollText.Scroll += new System.Windows.Forms.ScrollEventHandler(this.hScrollText_Scroll);
             // 
             // txtRotate
             // 
-            this.txtRotate.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.txtRotate.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.helpProvider1.SetHelpKeyword(this.txtRotate, "Text Area");
             this.helpProvider1.SetHelpNavigator(this.txtRotate, System.Windows.Forms.HelpNavigator.KeywordIndex);
             this.helpProvider1.SetHelpString(this.txtRotate, "Text Area");
             this.errorProvider1.SetIconPadding(this.txtRotate, 2);
-            this.txtRotate.Location = new System.Drawing.Point(169, 311);
+            this.txtRotate.Location = new System.Drawing.Point(184, 434);
             this.txtRotate.Margin = new System.Windows.Forms.Padding(4);
             this.txtRotate.Name = "txtRotate";
             this.helpProvider1.SetShowHelp(this.txtRotate, true);
-            this.txtRotate.Size = new System.Drawing.Size(39, 20);
+            this.txtRotate.Size = new System.Drawing.Size(50, 28);
             this.txtRotate.TabIndex = 10;
             this.txtRotate.Text = "0";
             this.txtRotate.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
@@ -1796,7 +1796,7 @@ namespace GTL_Editor
             this.vScrollBar2.LargeChange = 1;
             this.vScrollBar2.Location = new System.Drawing.Point(352, 18);
             this.vScrollBar2.Name = "vScrollBar2";
-            this.vScrollBar2.Size = new System.Drawing.Size(20, 200);
+            this.vScrollBar2.Size = new System.Drawing.Size(24, 200);
             this.vScrollBar2.TabIndex = 2;
             this.vScrollBar2.Scroll += new System.Windows.Forms.ScrollEventHandler(this.vScrollBar2_Scroll);
             // 
@@ -1871,7 +1871,7 @@ namespace GTL_Editor
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Padding = new System.Windows.Forms.Padding(4);
             this.helpProvider1.SetShowHelp(this.groupBox3, true);
-            this.groupBox3.Size = new System.Drawing.Size(375, 121);
+            this.groupBox3.Size = new System.Drawing.Size(390, 156);
             this.groupBox3.TabIndex = 18;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Tile Working Area";
@@ -2272,11 +2272,11 @@ namespace GTL_Editor
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.TextBox txtText;
         private System.Windows.Forms.Label lblTextPlacement;
-        private System.Windows.Forms.VScrollBar vScrollText;
-        private System.Windows.Forms.HScrollBar hScrollText;
+        private HighContrastVScrollBar vScrollText;
+        private HighContrastHScrollBar hScrollText;
         private System.Windows.Forms.Label lblTileSize;
         private System.Windows.Forms.FontDialog fontDialog1;
-        private System.Windows.Forms.HScrollBar hScrollRotate;
+        private HighContrastHScrollBar hScrollRotate;
         private System.Windows.Forms.PictureBox pctRotate;
         private System.Windows.Forms.Button btnStore;
         private System.Windows.Forms.Button btnPlace;
@@ -2312,9 +2312,9 @@ namespace GTL_Editor
         private System.Windows.Forms.ToolStripButton fullTiletoolStripButton1;
         private System.Windows.Forms.ToolStripButton halfTiletoolStripButton1;
         private System.Windows.Forms.ToolStripButton smallTiletoolStripButton2;
-        private System.Windows.Forms.VScrollBar vScrollBar1;
+        private HighContrastVScrollBar vScrollBar1;
         private System.Windows.Forms.Button btnReduceRange;
-        private System.Windows.Forms.VScrollBar vScrollBar2;
+        private HighContrastVScrollBar vScrollBar2;
         private System.Windows.Forms.ToolStripMenuItem selectFullTiletoolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem selectHalftoolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem selectSmalltoolStripMenuItem;

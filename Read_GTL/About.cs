@@ -15,7 +15,7 @@ namespace GTL_Editor
 
             this.Text = String.Format("About {0}", AssemblyTitle);
             this.labelProductName.Text = AssemblyProduct;
-            this.labelVersion.Text = String.Format("Version {0}", AssemblyVersion.Substring(0,3));
+            this.labelVersion.Text = String.Format("Version {0}", AssemblyVersion);
             this.textBoxDescription.Text = AssemblyDescription;
         }
 
@@ -45,7 +45,16 @@ namespace GTL_Editor
         {
             get
             {
-                return Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                Version v = Assembly.GetExecutingAssembly().GetName().Version;
+                if (v != null)
+                {
+                    if (v.Revision > 0)
+                        return $"{v.Major}.{v.Minor}.{v.Build}.{v.Revision}";
+                    if (v.Build > 0)
+                        return $"{v.Major}.{v.Minor}.{v.Build}";
+                    return $"{v.Major}.{v.Minor}";
+                }
+                return "";
             }
         }
 

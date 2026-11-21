@@ -5,8 +5,11 @@
     <UseWindowsForms>true</UseWindowsForms>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Version>1.9.0.0</Version>
+    <AssemblyVersion>1.9.0.0</AssemblyVersion>
+    <FileVersion>1.9.0.0</FileVersion>
     <ApplicationIcon>GTL Text Editor.ico</ApplicationIcon>
-    <NoWarn>$(NoWarn);WFO1000;CA1416;CS8981;SYSLIB0012</NoWarn>
+    <NoWarn>$(NoWarn);WFO1000;CA1416;CS8981;SYSLIB0012;CS0649;CS0414</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
